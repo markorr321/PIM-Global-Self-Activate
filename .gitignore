@@ -1,0 +1,35 @@
+# Build outputs
+bin/
+obj/
+out/
+*.exe
+*.dll
+*.pdb
+
+# Visual Studio / .NET
+.vs/
+*.user
+*.suo
+*.cache
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+PIM-Global-*/
+
+# PowerShell
+*.ps1.log
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Sensitive files (if any)
+*.key
+*.pem
+secrets.json 

@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <PublishTrimmed>false</PublishTrimmed>
+    <AssemblyName>PIM-Global</AssemblyName>
+    <RootNamespace>PIMGlobalLauncher</RootNamespace>
+    <ApplicationIcon>PIM.ico</ApplicationIcon>
+    <PublishDir>.\out</PublishDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="PIM-Global-V2.ps1" />
+    <EmbeddedResource Include="MSAL\netstandard2.0\Microsoft.Identity.Client.dll" />
+    <EmbeddedResource Include="MSAL\netstandard2.0\Microsoft.IdentityModel.Abstractions.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="PIM.ico" />
+  </ItemGroup>
+
+</Project> 
