@@ -51,7 +51,7 @@
 ### Initial Configuration Steps
 
 #### **Step 1: Download and Extract**
-1. Download `PIM-Global-MST.exe` from the [releases page](https://github.com/markorr321/PIM-Global-Self-Activate/releases)
+1. Download `PIM-Global-SA.exe` from the [releases page](https://github.com/markorr321/PIM-Global-Self-Activate/releases)
 2. Place the executable in a folder of your choice or pin it to your taskbar for daily use!
 3. No installation required - it's a portable executable
 
@@ -67,7 +67,7 @@ The tool works out-of-the-box for PIM functionality, but you need to configure T
 Continue to the Teams setup section below.
 
 #### **Step 3: First Run**
-1. Double-click `PIM-Global-MST.exe`
+1. Double-click `PIM-Global-SA.exe`
 2. The tool will automatically install required PowerShell modules:
    - `MSAL.PS` (Microsoft Authentication Library)
    - `Microsoft.Graph` (Graph API PowerShell SDK)

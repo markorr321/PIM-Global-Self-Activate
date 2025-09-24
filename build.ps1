@@ -18,10 +18,10 @@ dotnet publish PIMGlobalMSTLauncher.csproj -c Release -r win-x64 --self-containe
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "✅ Build completed successfully!" -ForegroundColor Green
-    Write-Host "📁 Output location: .\out\PIM-Global-MST.exe" -ForegroundColor Green
+    Write-Host "📁 Output location: .\out\PIM-Global-SA.exe" -ForegroundColor Green
     
     # Check if file exists and show size
-    $exePath = ".\out\PIM-Global-MST.exe"
+    $exePath = ".\out\PIM-Global-SA.exe"
     if (Test-Path $exePath) {
         $fileSize = (Get-Item $exePath).Length
         $fileSizeMB = [math]::Round($fileSize / 1MB, 2)

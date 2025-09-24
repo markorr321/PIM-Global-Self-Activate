@@ -76,7 +76,7 @@ The tool automatically installs required PowerShell modules:
 
 ### **Option A** — Download Portable Executable (Recommended)
 
-1. **Download** `PIM-Global-MST.exe` from [releases](https://github.com/markorr321/PIM-Global-Self-Activate/releases)
+1. **Download** `PIM-Global-SA.exe` from [releases](https://github.com/markorr321/PIM-Global-Self-Activate/releases)
 2. **Run** the executable - no installation required
 3. **Follow** the authentication prompts
 4. **Start using** - no additional configuration needed for self-activating roles
@@ -146,7 +146,7 @@ PIM-Global-MST automatically detects active roles and provides a streamlined dea
 - **⚡ Smart Filtering** - Only shows roles that can be deactivated (excludes permanent assignments)
 
 ### **Deactivation Process**
-1. **Launch the tool** - Run `PIM-Global-MST.exe` or the PowerShell script
+1. **Launch the tool** - Run `PIM-Global-SA.exe` or the PowerShell script
 2. **Authentication** - Complete MFA authentication (one-time per session)
 3. **Active Role Detection** - Tool automatically scans for active PIM role assignments
 4. **Role Selection** - Choose which active roles to deactivate (supports multi-select)
