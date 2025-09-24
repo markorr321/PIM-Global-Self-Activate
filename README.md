@@ -275,7 +275,7 @@ MIT License
 ## 🔗 Related Projects
 
 * **[PIM-Global](https://github.com/markorr321/PIM-Global)** - Original PowerShell-only version
-* **[PIM-Global-Self-Activate](https://github.com/markorr321/PIM-Global-Self-Activate)** - This project (executable + Teams integration)
+* **[PIM-Global-Self-Activate](https://github.com/markorr321/PIM-Global-Self-Activate)**
 
 ---
 
