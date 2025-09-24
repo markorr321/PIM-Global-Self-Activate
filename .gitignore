@@ -1,8 +1,8 @@
 # Build outputs
 bin/
 obj/
-out/
-*.exe
+# out/ - Allow out directory for EXE
+# *.exe - Allow EXE files in repository
 *.dll
 *.pdb
 

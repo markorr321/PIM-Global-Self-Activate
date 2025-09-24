@@ -12,9 +12,9 @@ dotnet clean PIMGlobalMSTLauncher.csproj
 Write-Host "📦 Restoring dependencies..." -ForegroundColor Yellow
 dotnet restore PIMGlobalMSTLauncher.csproj
 
-# Build and publish
+# Build and publish (framework-dependent - much smaller)
 Write-Host "🚀 Building executable..." -ForegroundColor Yellow
-dotnet publish PIMGlobalMSTLauncher.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
+dotnet publish PIMGlobalMSTLauncher.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "✅ Build completed successfully!" -ForegroundColor Green
