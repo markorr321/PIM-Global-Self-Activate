@@ -366,10 +366,10 @@ function Show-DynamicExpirationMenu {
                         Write-Host "❌ No role management workflows available." -ForegroundColor Red
                     Write-Host ""
                     Write-Host "Check back later when roles are approved or activated." -ForegroundColor Gray
-                    Write-Host ""
                     Show-DynamicControlBar
                     
-                    # Wait for Ctrl+Q to exit
+                    # Hide cursor and wait for Ctrl+Q to exit
+                    [Console]::CursorVisible = $false
                     do {
                         $key = [Console]::ReadKey($true)
                         if ($key.Key -eq 'Q' -and $key.Modifiers -eq 'Control') {
@@ -586,7 +586,6 @@ function Start-RoleDeactivationWorkflowWithCheck {
                         Write-PIMHost "❌ No role management workflows available." -ForegroundColor Red
                         Write-PIMHost ""
                         Write-PIMHost "Check back later when roles are approved or activated." -ForegroundColor Gray
-                        Write-PIMHost ""
                         Write-PIMHost "Ctrl+Q Exit" -ForegroundColor Magenta
                         
                         # Wait for Ctrl+Q
@@ -612,7 +611,7 @@ function Start-RoleDeactivationWorkflowWithCheck {
                         } catch { }
                     }
                     
-                    Write-Host "No additional roles will be managed." -ForegroundColor Yellow
+                    Write-Host "No additional roles will be managed." -ForegroundColor Red
                     Write-Host ""
                     Write-Host "Ctrl+Q Exit" -ForegroundColor Magenta
                     
@@ -759,7 +758,6 @@ function Start-RoleDeactivationWorkflowWithCheck {
         do {
             Write-Host "Would you like to activate roles instead? (Y/N): " -NoNewline -ForegroundColor Cyan
             Write-Host ""
-            Write-Host ""
             Write-Host "Ctrl+Q to exit" -ForegroundColor Magenta
             $input = Read-Host
             $input = $input.Trim().ToUpper()
@@ -768,10 +766,12 @@ function Start-RoleDeactivationWorkflowWithCheck {
                 Start-PIMRoleManagement -CurrentUserId $CurrentUserId
                 return
             } elseif ($input -eq "N" -or $input -eq "NO") {
-                Write-PIMHost "No additional roles will be managed." -ForegroundColor Cyan -ControlsText $script:ControlMessages['Exit']
-                Write-PIMHost "Please close the terminal." -ForegroundColor Yellow -ControlsText $script:ControlMessages['Exit']
+                Write-Host "No additional roles will be managed." -ForegroundColor Red
+                Write-Host "Please close the terminal." -ForegroundColor Yellow
+                Write-Host "Ctrl+Q Exit" -ForegroundColor Magenta
                 
-                # Wait for user to exit with Ctrl+Q
+                # Hide cursor and wait for user to exit with Ctrl+Q
+                [Console]::CursorVisible = $false
                 do {
                     if ([Console]::KeyAvailable) {
                         $key = [Console]::ReadKey($true)
@@ -866,10 +866,10 @@ function Start-RoleDeactivationWorkflowWithCheck {
                     Write-Host "❌ No role management workflows available." -ForegroundColor Red
                     Write-Host ""
                     Write-Host "Check back later when roles are approved or activated." -ForegroundColor Gray
-                    Write-Host ""
                     Show-DynamicControlBar
                     
-                    # Wait for Ctrl+Q to exit
+                    # Hide cursor and wait for Ctrl+Q to exit
+                    [Console]::CursorVisible = $false
                     do {
                         $key = [Console]::ReadKey($true)
                         if ($key.Key -eq 'Q' -and $key.Modifiers -eq 'Control') {
@@ -1073,10 +1073,10 @@ function Start-RoleDeactivationWorkflowWithCheck {
         Write-Host "❌ No role management workflows available." -ForegroundColor Red
                     Write-Host ""
                     Write-Host "Check back later when roles are approved or activated." -ForegroundColor Gray
-                    Write-Host ""
                     Show-DynamicControlBar
                     
-                    # Wait for Ctrl+Q to exit
+                    # Hide cursor and wait for Ctrl+Q to exit
+                    [Console]::CursorVisible = $false
                     do {
                         $key = [Console]::ReadKey($true)
                         if ($key.Key -eq 'Q' -and $key.Modifiers -eq 'Control') {
@@ -1167,10 +1167,10 @@ function Start-RoleDeactivationWorkflowWithCheck {
                     Write-Host "❌ No role management workflows available." -ForegroundColor Red
                     Write-Host ""
                     Write-Host "Check back later when roles are approved or activated." -ForegroundColor Gray
-                    Write-Host ""
                     Show-DynamicControlBar
                     
-                    # Wait for Ctrl+Q to exit
+                    # Hide cursor and wait for Ctrl+Q to exit
+                    [Console]::CursorVisible = $false
                     do {
                         $key = [Console]::ReadKey($true)
                         if ($key.Key -eq 'Q' -and $key.Modifiers -eq 'Control') {
@@ -1390,10 +1390,10 @@ function Start-RoleDeactivationWorkflowWithCheck {
         Write-Host "❌ No role management workflows available." -ForegroundColor Red
                     Write-Host ""
                     Write-Host "Check back later when roles are approved or activated." -ForegroundColor Gray
-                    Write-Host ""
                     Show-DynamicControlBar
                     
-                    # Wait for Ctrl+Q to exit
+                    # Hide cursor and wait for Ctrl+Q to exit
+                    [Console]::CursorVisible = $false
                     do {
                         $key = [Console]::ReadKey($true)
                         if ($key.Key -eq 'Q' -and $key.Modifiers -eq 'Control') {
@@ -1408,14 +1408,14 @@ function Start-RoleDeactivationWorkflowWithCheck {
 
 function Show-PIMGlobalHeader {
     Write-Host "[ P I M - G L O B A L ]" -ForegroundColor DarkMagenta
-    Write-Host "PIM-Global - Automate PIM Role Activation Application via Microsoft Entra ID" -ForegroundColor Green
+    Write-Host "PIM-Global Self-Activate - Automate Self-Activating PIM Roles via Microsoft Entra ID" -ForegroundColor Green
         Write-Host "Made by Mark Orr with " -NoNewline -ForegroundColor White
         Write-Host "☕ 3 cups of coffee" -NoNewline -ForegroundColor Yellow
         Write-Host " and " -NoNewline -ForegroundColor White  
         Write-Host "🥤 6 diet cokes" -NoNewline -ForegroundColor Red
         Write-Host "! Dedicated to " -NoNewline -ForegroundColor White
         Write-Host "Courtney and Aubrey" -ForegroundColor Magenta
-    Write-Host "Version 3.0.0 | Release: 01.15.2025" -ForegroundColor Gray
+    Write-Host "Version 4.0.0 | Release: 09.25.2025" -ForegroundColor Gray
     Write-Host ""
     Write-Host "This is a private version of the application. Feedback welcome at:" -ForegroundColor Yellow
     Write-Host "Issues: " -NoNewline -ForegroundColor White
@@ -1446,6 +1446,7 @@ function Show-PIMGlobalHeader {
             [string]$Message = "Exiting..."
         )
         
+        [Console]::CursorVisible = $true
         Clear-Host
         Write-Host $Message -ForegroundColor Yellow
         
@@ -1495,6 +1496,7 @@ function Show-PIMGlobalHeader {
         
         # Show control bar below the prompt
         Write-Host ""  # Move to next line
+        Write-Host ""  # Add extra space
         Write-Host $ControlsText -ForegroundColor Magenta
         $script:LastControlBarLine = [Console]::CursorTop - 1
         
@@ -1833,7 +1835,6 @@ function Show-PIMGlobalHeader {
                             Write-Host "❌ No role management workflows available." -ForegroundColor Yellow
                             Write-Host ""
                             Write-Host "Check back later when roles are approved or activated." -ForegroundColor White
-                            Write-Host ""
                             Write-Host "Ctrl+Q Exit" -ForegroundColor Magenta
                             
                             # Hide cursor since no input is needed
@@ -1978,7 +1979,6 @@ function Show-PIMGlobalHeader {
             return
         }
         
-        Write-Host ""
         Write-Host "🔄 Activating $($selectedIndices.Count) role(s)..." -ForegroundColor Cyan
         
         $successCount = 0
@@ -2064,10 +2064,14 @@ function Show-PIMGlobalHeader {
                 }
             }
         } else {
-            Write-PIMHost "No additional roles will be managed." -ForegroundColor Cyan -ControlsText $script:ControlMessages['Exit']
-            Write-PIMHost "Please close the terminal." -ForegroundColor Yellow -ControlsText $script:ControlMessages['Exit']
+            Write-Host "No additional roles will be managed." -ForegroundColor Red
+            Write-Host ""
+            Write-Host "Please close the terminal." -ForegroundColor Yellow
+            Write-Host ""
+            Write-Host "Ctrl+Q Exit" -ForegroundColor Magenta
             
-            # Wait for user to exit with Ctrl+Q
+            # Hide cursor and wait for user to exit with Ctrl+Q
+            [Console]::CursorVisible = $false
             do {
                 if ([Console]::KeyAvailable) {
                     $key = [Console]::ReadKey($true)
@@ -2771,7 +2775,7 @@ function Show-PIMGlobalHeader {
          # Clear screen and show header
         Clear-Host
         Write-Host "[ P I M - G L O B A L ]" -ForegroundColor DarkMagenta
-        Write-Host "PIM-Global - Automate PIM Role Activation Application via Microsoft Entra ID" -ForegroundColor Green
+        Write-Host "PIM-Global Self-Activate - Automate Self-Activating PIM Roles via Microsoft Entra ID" -ForegroundColor Green
         
         # Initialize selection state
         $selected = @{}
@@ -3208,6 +3212,7 @@ function Show-PIMGlobalHeader {
             $headerLines += ""
             $headerLines += "⏰ Time Remaining Until Roles Can Be Deactivated"
             $headerLines += "   (5-minute minimum activation period required)"
+            $headerLines += ""
             $headerLines += "   The deactivation menu will automatically refresh when timers expire"
             $headerLines += ""
             
@@ -3331,6 +3336,7 @@ function Show-PIMGlobalHeader {
         Write-Host "⏰ Time Remaining Until Roles Can Be Deactivated" -ForegroundColor Yellow
         Write-Host ""
         Write-Host "   (5-minute minimum activation period required)" -ForegroundColor Gray
+        Write-Host ""
         Write-Host "   The deactivation menu will automatically refresh when timers expire" -ForegroundColor Cyan
         Write-Host ""
         
@@ -4261,10 +4267,10 @@ function Show-PIMGlobalHeader {
                 Write-Host "❌ No role management workflows available." -ForegroundColor Red
                     Write-Host ""
                     Write-Host "Check back later when roles are approved or activated." -ForegroundColor Gray
-                    Write-Host ""
                     Show-DynamicControlBar
                     
-                    # Wait for Ctrl+Q to exit
+                    # Hide cursor and wait for Ctrl+Q to exit
+                    [Console]::CursorVisible = $false
                     do {
                         $key = [Console]::ReadKey($true)
                         if ($key.Key -eq 'Q' -and $key.Modifiers -eq 'Control') {
@@ -4302,10 +4308,10 @@ function Show-PIMGlobalHeader {
                     Write-Host "❌ No role management workflows available." -ForegroundColor Red
                     Write-Host ""
                     Write-Host "Check back later when roles are approved or activated." -ForegroundColor Gray
-                    Write-Host ""
                     Show-DynamicControlBar
                     
-                    # Wait for Ctrl+Q to exit
+                    # Hide cursor and wait for Ctrl+Q to exit
+                    [Console]::CursorVisible = $false
                     do {
                         $key = [Console]::ReadKey($true)
                         if ($key.Key -eq 'Q' -and $key.Modifiers -eq 'Control') {
@@ -4547,10 +4553,10 @@ function Start-RoleDeactivationWorkflow {
                     Write-Host "❌ No role management workflows available." -ForegroundColor Red
                     Write-Host ""
                     Write-Host "Check back later when roles are approved or activated." -ForegroundColor Gray
-                    Write-Host ""
                     Show-DynamicControlBar
                     
-                    # Wait for Ctrl+Q to exit
+                    # Hide cursor and wait for Ctrl+Q to exit
+                    [Console]::CursorVisible = $false
                     do {
                         $key = [Console]::ReadKey($true)
                         if ($key.Key -eq 'Q' -and $key.Modifiers -eq 'Control') {
@@ -4596,10 +4602,10 @@ function Start-RoleDeactivationWorkflow {
             Write-Host "❌ No role management workflows available." -ForegroundColor Red
                     Write-Host ""
                     Write-Host "Check back later when roles are approved or activated." -ForegroundColor Gray
-                    Write-Host ""
                     Show-DynamicControlBar
                     
-                    # Wait for Ctrl+Q to exit
+                    # Hide cursor and wait for Ctrl+Q to exit
+                    [Console]::CursorVisible = $false
                     do {
                         $key = [Console]::ReadKey($true)
                         if ($key.Key -eq 'Q' -and $key.Modifiers -eq 'Control') {
@@ -4829,10 +4835,14 @@ function Start-RoleDeactivationWorkflow {
                 }
             }
         } else {
-            Write-PIMHost "No additional roles will be managed." -ForegroundColor Cyan -ControlsText $script:ControlMessages['Exit']
-            Write-PIMHost "Please close the terminal." -ForegroundColor Yellow -ControlsText $script:ControlMessages['Exit']
+            Write-Host "No additional roles will be managed." -ForegroundColor Red
+            Write-Host ""
+            Write-Host "Please close the terminal." -ForegroundColor Yellow
+            Write-Host ""
+            Write-Host "Ctrl+Q Exit" -ForegroundColor Magenta
             
-            # Wait for user to exit with Ctrl+Q
+            # Hide cursor and wait for user to exit with Ctrl+Q
+            [Console]::CursorVisible = $false
             do {
                 if ([Console]::KeyAvailable) {
                     $key = [Console]::ReadKey($true)
