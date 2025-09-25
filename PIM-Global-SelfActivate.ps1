@@ -1700,7 +1700,6 @@ function Show-PIMGlobalHeader {
     Write-Host "https://github.com/sponsors/markorr321" -ForegroundColor Blue
     Write-Host "Development opportunities: " -NoNewline -ForegroundColor White
     Write-Host "morr@orr365.tech" -ForegroundColor Cyan
-    Start-Sleep -Seconds 3
     
     # ========================= Optimized Module Dependencies =========================
     $ErrorActionPreference = "SilentlyContinue"
