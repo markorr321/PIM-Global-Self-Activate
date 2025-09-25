@@ -2,7 +2,7 @@
 
 Latest Release
 
-> **Now available as a standalone `.exe`** in v3.0.0 – no PowerShell required, streamlined for self-activating organizations.
+> **Now available as a standalone `.exe`** in v4.0.0 – no PowerShell required, streamlined for self-activating organizations.
 
 PIM-Global-SelfActivate is a lightweight, secure desktop utility designed to streamline Entra ID Privileged Identity Management (PIM) role activation and deactivation for organizations with self-activating PIM roles.
 

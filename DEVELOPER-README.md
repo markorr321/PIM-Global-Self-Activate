@@ -173,7 +173,7 @@ The resulting `PIM-Global-SA.exe` is a completely standalone executable that:
 
 ## Version Information
 
-Current version: 3.0.0
+Current version: 4.0.0
 - Semantic versioning implemented in both C# project and PowerShell script
 - Version information embedded in executable metadata
 - Release notes maintained in GitHub releases

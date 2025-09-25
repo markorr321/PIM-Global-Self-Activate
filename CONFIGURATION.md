@@ -426,4 +426,4 @@ $VerbosePreference = "Continue"
 
 ---
 
-*This configuration guide covers PIM-Global-MST Version 3.0.0. For the latest updates, visit the [GitHub repository](https://github.com/markorr321/PIM-Global-Self-Activate).*
+*This configuration guide covers PIM-Global-MST Version 4.0.0. For the latest updates, visit the [GitHub repository](https://github.com/markorr321/PIM-Global-Self-Activate).*
