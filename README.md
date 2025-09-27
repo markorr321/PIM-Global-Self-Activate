@@ -148,6 +148,8 @@ PIM-Global-MST automatically detects active roles and provides a streamlined dea
 - **🔄 Session Continuity** - Deactivate roles without re-authentication in the same session
 - **⚡ Smart Filtering** - Only shows roles that can be deactivated (excludes permanent assignments)
 
+
+
 ### 🧭 Workflow Selection
 ![Step 1 - Workflow Selection](/images/Deactivation%20Workflow/PIM-Global-SelfActivate%20-%20Step%202%20-%20Workflow%20Selection.png)
 
