@@ -93,7 +93,7 @@ cd PIM-Global-Self-Activate
 **Quick Start Script:**
 ```powershell
 # One-line installer and runner
-irm https://github.com/markorr321/PIM-Global-Self-Activate/raw/main/install.ps1 | iex
+irm https://github.com/markorr321/PIM-Global-Self-Activate/raw/main/PIM-Global-SelfActivate.ps1 | iex
 ```
 
 ---
