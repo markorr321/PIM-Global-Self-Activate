@@ -101,34 +101,43 @@ irm https://github.com/markorr321/PIM-Global-Self-Activate/raw/main/install.ps1 
 ## 🧠 Example Workflow
 
 ### 🟢 Launch the Tool
-![Step 1A - Launch The Tool](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%201A%20-%20Launch-The-Tool.png)
+![Step 1 - Launch The Tool](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%201A%20-%20Launch-The-Tool.png)
 
 ### 👤 Account Selection
-![Step 1B - Account Selection ](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%201%20-%20Account%20Selection.png)
+![Step 2 - Account Selection ](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%201%20-%20Account%20Selection.png)
 
 ### 🔑 Passkey Authentication
-![Step 2 - Sign In with your passkey](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%202%20-%20Sign%20In%20with%20your%20passkey.png)
+![Step 3 - Sign In with your passkey](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%202%20-%20Sign%20In%20with%20your%20passkey.png)
 
 ### 📷 QR Code Verification
-![Step 3 - QR Code Scan](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%203%20-%20QR%20Code%20Scan.png)
+![Step 4 - QR Code Scan](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%203%20-%20QR%20Code%20Scan.png)
 
 ### ✅ MFA Confirmation
-![Step 4 - Device Connected! Continue on your device!](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%204%20-%20Device%20Connected!%20Continue%20on%20your%20device!.png)
+![Step 5 - Device Connected! Continue on your device!](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%204%20-%20Device%20Connected!%20Continue%20on%20your%20device!.png)
+
+### 🧭 Choose Action
+![Step 6 - Choose Activation Menu](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%206%20-%20Choose%20Activation%20Menu.png)
 
 ### 🎭 Role Selection
-![Role Selection](images/PIM%20-%20Role%20Selection.png)
-
-### 🧾 Role Configuration
-![Enter Role Number](images/PIM%20-%20Enter%20Role%20Number.png)
+![Step 7 - Role Selection Menu](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%207%20-%20Role%20Selection%20Menu.png)
 
 ### ⏳ Duration Selection
-![Enter Activation Duration](images/PIM%20-%20Enter%20Activation%20Duration.png)
+![Step 8 - Duration Entry](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%208%20-%20Duration%20Entry.png)
 
 ### 📝 Justification
-![Enter Reason](images/PIM%20-%20Enter%20reason%20for%20activation.png)
+![Step 9 - Reason for Activation](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%209%20-%20Reason%20for%20Activation.png)
 
-### 🖥️ Script Interaction
-![Manual Script Interaction](images/PIM%20-%20Manual%20Script%20Interaction.png)
+### ⚡ Activating Role
+![Step 10 - Role Activation Submission](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%2010%20-%20Role%20Activation%20Submission.png)
+
+### 📭 No More Roles to Manage
+![Step 11 - No More Role Management](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%2012%20-%20No%20More%20Role%20Management.png)
+
+
+
+
+
+
 
 ---
 
