@@ -133,12 +133,6 @@ irm https://github.com/markorr321/PIM-Global-Self-Activate/raw/main/install.ps1 
 ### 📭 No More Roles to Manage
 ![Step 11 - No More Role Management](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%2012%20-%20No%20More%20Role%20Management.png)
 
-
-
-
-
-
-
 ---
 
 ## 🛑 Deactivation Workflow
@@ -154,36 +148,18 @@ PIM-Global-MST automatically detects active roles and provides a streamlined dea
 - **🔄 Session Continuity** - Deactivate roles without re-authentication in the same session
 - **⚡ Smart Filtering** - Only shows roles that can be deactivated (excludes permanent assignments)
 
-### **Deactivation Process**
-1. **Launch the tool** - Run `PIM-Global-SA.exe` or the PowerShell script
-2. **Authentication** - Complete MFA authentication (one-time per session)
-3. **Active Role Detection** - Tool automatically scans for active PIM role assignments
-4. **Role Selection** - Choose which active roles to deactivate (supports multi-select)
-5. **Justification** - Provide reason for deactivation (required for audit compliance)
-6. **Confirmation** - Review selections and confirm deactivation
-7. **Completion** - Role deactivation confirmed with audit trail
+### 🧭 Workflow Selection
+![Step 1 - Workflow Selection](/images/Deactivation%20Workflow/PIM-Global-SelfActivate%20-%20Step%202%20-%20Workflow%20Selection.png)
 
-### **Deactivation Workflow Benefits**
-- **🛡️ Security Compliance** - Ensures roles are deactivated when no longer needed
-- **📊 Audit Trail** - Complete justification and timestamp logging
-- **⏱️ Time Savings** - Bulk operations reduce administrative overhead  
-- **🔔 Transparency** - Clear console feedback and audit trails
-- **🎯 Precision** - Only shows roles that can actually be deactivated
+### 🛑 Role Selection (Deactivation)
+![Step 2 - Role Selection (Deactivation)](/images/Deactivation%20Workflow/PIM-Global-SelfActivate%20-%20Step%201%20-%20Role%20Selection.png)
 
-### **Example Deactivation Scenario**
-```
-🔍 Detected Active Roles:
-[1] Global Administrator (Expires: 2025-01-15 3:00 PM)
-[2] Security Administrator (Expires: 2025-01-15 5:30 PM)
-[3] User Administrator (Expires: 2025-01-15 4:15 PM)
+### ✔️ Role Deactivation Successful
+![Step 3 - Role Deactivation Successful](/images/Deactivation%20Workflow/PIM-Global-SelfActivate%20-%20Step%203-%20Role%20Deactivaiton%20Sucessfull.png)
 
-Selection: 1,3
-Justification: Project completed - no longer need elevated access
-✅ Successfully deactivated 2 roles
-📊 Audit trail recorded with justification
-```
+### 📭 No More Workflows Available
+![Step 4 - No More Workflows Available](/images/Deactivation%20Workflow/PIM-Global-SelfActivate%20-%20Step%204%20-%20No%20More%20Workflows%20Available.png)
 
----
 
 ## 🔧 Configuration
 
