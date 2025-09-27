@@ -110,7 +110,7 @@ irm https://github.com/markorr321/PIM-Global-Self-Activate/raw/main/install.ps1 
 ![Step 2 - Sign In with your passkey](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%202%20-%20Sign%20In%20with%20your%20passkey.png)
 
 ### 📷 QR Code Verification
-![Step 3 - QR Code Scan](https://raw.githubusercontent.com/markorr321/PIM-Global-Self-Activate/main/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%203%20-%20QR%20Code%20Scan.png)
+![Step 3 - QR Code Scan](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%203%20-%20QR%20Code%20Scan.png)
 
 ### ✅ MFA Confirmation
 ![Final MFA](images/PIM%20-%20Final%20MFA.png)
