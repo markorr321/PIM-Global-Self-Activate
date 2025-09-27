@@ -104,7 +104,7 @@ irm https://github.com/markorr321/PIM-Global-Self-Activate/raw/main/install.ps1 
 ![PIM Global Branding](images/PIM-Final.png)
 
 ### 👤 Account Selection
-images/Activation Workflow/PIM-Global-SelfActivate - Step 1 - Account Selection.png
+![Alt text](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%201%20-%20Account%20Selection.png)
 
 ### 🔑 Passkey Authentication
 ![Device Selection](images/PIM%20-%20Device%20Selection.png)
