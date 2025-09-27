@@ -200,6 +200,26 @@ This tool implements enterprise-grade security:
 - Batch processing for efficient role management
 - Smart role conflict detection
 
+### 🎭 Multi-Role Selection
+![Step 1 - Role Selection Menu (Multiple)](/images/Advance%20Features/Multi-Role%20Selection/PIM-Global-SelfActivate%20-%20Step%201%20-%20Role%20Selection%20Menu%20(Multiple).png)
+
+### ⏳ Duration Selection
+![Step 2 - Multi-Role Duration Entry](/images/Advance%20Features/Multi-Role%20Selection/PIM-Global-SelfActivate%20-%20Step%202%20-%20Multi-Role%20Duration%20Entry.png)
+
+### 📝 Justification
+![Step 3 - Multi-Role Justification](/images/Advance%20Features/Multi-Role%20Selection/PIM-Global-SelfActivate%20-%20Step%203%20-%20Multi-Role%20Justification.png)
+
+### ⚡ Activating Role
+![Step 4 - Multi-Role Activation Successful](/images/Advance%20Features/Multi-Role%20Selection/PIM-Global-SelfActivate%20-%20Step%204%20-%20Multi-Role%20Activation%20Successful.png)
+
+### 📭 No More Roles to Manage
+![Step 5 - No More Multi-Role Management](/images/Advance%20Features/Multi-Role%20Selection/PIM-Global-SelfActivate%20-%20Step%205%20-%20No%20More%20Multi-Role%20Management.png)
+
+### 🏁 Multi-Role Flow Complete
+![Step 6 - Multi-Role Flow Complete](/images/Advance%20Features/Multi-Role%20Selection/PIM-Global-SelfActivate%20-%20Step%206%20-%20Multi-Role%20Flow%20Complete.png)
+
+
+
 ### **Interactive Session Mode**
 - Perform multiple PIM operations without re-authentication
 - Session state management across operations
