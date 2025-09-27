@@ -113,7 +113,7 @@ irm https://github.com/markorr321/PIM-Global-Self-Activate/raw/main/install.ps1 
 ![Step 3 - QR Code Scan](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%203%20-%20QR%20Code%20Scan.png)
 
 ### ✅ MFA Confirmation
-![Final MFA](images/PIM%20-%20Final%20MFA.png)
+![Step 4 - Device Connected! Continue on your device!](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%204%20-%20Device%20Connected!%20Continue%20on%20your%20device!.png)
 
 ### 🎭 Role Selection
 ![Role Selection](images/PIM%20-%20Role%20Selection.png)
