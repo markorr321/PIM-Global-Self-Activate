@@ -9,7 +9,7 @@ PIM-Global-SelfActivate is a lightweight, secure desktop utility designed to str
 ---
 
 > 🚀 **Self-Activate Version Released!**  
-> `PIM-Global-SelfActivate.ps1` now supports **phishing-resistant passwordless MFA**, **multi-role operations**, **active role detection**, and **streamlined workflows** for organizations with self-activating PIM roles.
+> `PIM-Global-SelfActivate` now supports **multi-role operations**, **active role detection**, and **streamlined workflows** for organizations with self-activating PIM roles.
 
 ## 🚀 Key Features
 
