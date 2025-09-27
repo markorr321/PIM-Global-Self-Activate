@@ -223,7 +223,8 @@ This tool implements enterprise-grade security:
 - **Real-time Countdown:** Displays live countdown timers showing when each role becomes eligible for deactivation, with option to skip if needed  
 - **User-friendly Interface:** Provides clear visual feedback and automatic progression to deactivation workflow once the timer completes  
 
-
+### ⏱️ 5-Minute Minimum Activation Timer
+![5 Minute Minimum Activation Timer](/images/Advance%20Features/5%20Minute%20Minimum%20Activation%20Timer.png)
 
 ### **Interactive Session Mode**
 - Perform multiple PIM operations without re-authentication
