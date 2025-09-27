@@ -218,6 +218,11 @@ This tool implements enterprise-grade security:
 ### 🏁 Multi-Role Flow Complete
 ![Step 6 - Multi-Role Flow Complete](/images/Advance%20Features/Multi-Role%20Selection/PIM-Global-SelfActivate%20-%20Step%206%20-%20Multi-Role%20Flow%20Complete.png)
 
+### **5-Minute Deactivation Timer**
+- **Smart Protection:** Enforces a 5-minute minimum activation period to prevent accidental immediate deactivation of newly activated roles  
+- **Real-time Countdown:** Displays live countdown timers showing when each role becomes eligible for deactivation, with option to skip if needed  
+- **User-friendly Interface:** Provides clear visual feedback and automatic progression to deactivation workflow once the timer completes  
+
 
 
 ### **Interactive Session Mode**
