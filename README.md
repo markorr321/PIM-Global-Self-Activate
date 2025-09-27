@@ -101,16 +101,16 @@ irm https://github.com/markorr321/PIM-Global-Self-Activate/raw/main/install.ps1 
 ## 🧠 Example Workflow
 
 ### 🟢 Launch the Tool
-![PIM Global Branding](images/PIM-Final.png)
+![Step 1A - Launch The Tool](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%201A%20-%20Launch-The-Tool.png)
 
 ### 👤 Account Selection
-![Alt text](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%201%20-%20Account%20Selection.png)
+![Step 1B - Account Selection ](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%201%20-%20Account%20Selection.png)
 
 ### 🔑 Passkey Authentication
-![Device Selection](images/PIM%20-%20Device%20Selection.png)
+![Step 2 - Sign In with your passkey](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%202%20-%20Sign%20In%20with%20your%20passkey.png)
 
 ### 📷 QR Code Verification
-![QR Code Verification](images/PIM%20-%20QR%20Code%20Verification.png)
+![Step 3 - QR Code Scan](https://raw.githubusercontent.com/markorr321/PIM-Global-Self-Activate/main/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%203%20-%20QR%20Code%20Scan.png)
 
 ### ✅ MFA Confirmation
 ![Final MFA](images/PIM%20-%20Final%20MFA.png)
