@@ -1719,6 +1719,7 @@ function Show-PIMGlobalHeader {
     $requiredGraphModules = @(
         "Microsoft.Graph.Authentication",
         "Microsoft.Graph.Identity.DirectoryManagement",
+        "Microsoft.Graph.Identity.Governance",
         "Microsoft.Graph.Users"
     )
     
