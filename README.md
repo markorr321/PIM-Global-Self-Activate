@@ -9,7 +9,7 @@ PIM-Global-SelfActivate is a lightweight, secure desktop utility designed to str
 ---
 
 > 🚀 **Self-Activate Version Released!**  
-> `PIM-Global-SelfActivate.ps1` now supports **phishing-resistant passwordless MFA**, **multi-role operations**, **active role detection**, and **streamlined workflows** for organizations with self-activating PIM roles.
+> `PIM-Global-SelfActivate` now supports **multi-role operations**, **active role detection**, and **streamlined workflows** for organizations with self-activating PIM roles.
 
 ## 🚀 Key Features
 
@@ -93,7 +93,7 @@ cd PIM-Global-Self-Activate
 **Quick Start Script:**
 ```powershell
 # One-line installer and runner
-irm https://github.com/markorr321/PIM-Global-Self-Activate/raw/main/install.ps1 | iex
+irm https://github.com/markorr321/PIM-Global-Self-Activate/raw/main/PIM-Global-SelfActivate.ps1 | iex
 ```
 
 ---
@@ -101,34 +101,37 @@ irm https://github.com/markorr321/PIM-Global-Self-Activate/raw/main/install.ps1 
 ## 🧠 Example Workflow
 
 ### 🟢 Launch the Tool
-![PIM Global Branding](images/PIM-Final.png)
+![Step 1 - Launch The Tool](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%201A%20-%20Launch-The-Tool.png)
 
 ### 👤 Account Selection
-![Account Selection](images/PIM%20-%20Account%20Selection.png)
+![Step 2 - Account Selection ](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%201%20-%20Account%20Selection.png)
 
 ### 🔑 Passkey Authentication
-![Device Selection](images/PIM%20-%20Device%20Selection.png)
+![Step 3 - Sign In with your passkey](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%202%20-%20Sign%20In%20with%20your%20passkey.png)
 
 ### 📷 QR Code Verification
-![QR Code Verification](images/PIM%20-%20QR%20Code%20Verification.png)
+![Step 4 - QR Code Scan](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%203%20-%20QR%20Code%20Scan.png)
 
 ### ✅ MFA Confirmation
-![Final MFA](images/PIM%20-%20Final%20MFA.png)
+![Step 5 - Device Connected! Continue on your device!](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%204%20-%20Device%20Connected!%20Continue%20on%20your%20device!.png)
+
+### 🧭 Choose Action
+![Step 6 - Choose Activation Menu](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%206%20-%20Choose%20Activation%20Menu.png)
 
 ### 🎭 Role Selection
-![Role Selection](images/PIM%20-%20Role%20Selection.png)
-
-### 🧾 Role Configuration
-![Enter Role Number](images/PIM%20-%20Enter%20Role%20Number.png)
+![Step 7 - Role Selection Menu](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%207%20-%20Role%20Selection%20Menu.png)
 
 ### ⏳ Duration Selection
-![Enter Activation Duration](images/PIM%20-%20Enter%20Activation%20Duration.png)
+![Step 8 - Duration Entry](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%208%20-%20Duration%20Entry.png)
 
 ### 📝 Justification
-![Enter Reason](images/PIM%20-%20Enter%20reason%20for%20activation.png)
+![Step 9 - Reason for Activation](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%209%20-%20Reason%20for%20Activation.png)
 
-### 🖥️ Script Interaction
-![Manual Script Interaction](images/PIM%20-%20Manual%20Script%20Interaction.png)
+### ⚡ Activating Role
+![Step 10 - Role Activation Submission](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%2010%20-%20Role%20Activation%20Submission.png)
+
+### 📭 No More Roles to Manage
+![Step 11 - No More Role Management](/images/Activation%20Workflow/PIM-Global-SelfActivate%20-%20Step%2012%20-%20No%20More%20Role%20Management.png)
 
 ---
 
@@ -145,36 +148,20 @@ PIM-Global-MST automatically detects active roles and provides a streamlined dea
 - **🔄 Session Continuity** - Deactivate roles without re-authentication in the same session
 - **⚡ Smart Filtering** - Only shows roles that can be deactivated (excludes permanent assignments)
 
-### **Deactivation Process**
-1. **Launch the tool** - Run `PIM-Global-SA.exe` or the PowerShell script
-2. **Authentication** - Complete MFA authentication (one-time per session)
-3. **Active Role Detection** - Tool automatically scans for active PIM role assignments
-4. **Role Selection** - Choose which active roles to deactivate (supports multi-select)
-5. **Justification** - Provide reason for deactivation (required for audit compliance)
-6. **Confirmation** - Review selections and confirm deactivation
-7. **Completion** - Role deactivation confirmed with audit trail
 
-### **Deactivation Workflow Benefits**
-- **🛡️ Security Compliance** - Ensures roles are deactivated when no longer needed
-- **📊 Audit Trail** - Complete justification and timestamp logging
-- **⏱️ Time Savings** - Bulk operations reduce administrative overhead  
-- **🔔 Transparency** - Clear console feedback and audit trails
-- **🎯 Precision** - Only shows roles that can actually be deactivated
 
-### **Example Deactivation Scenario**
-```
-🔍 Detected Active Roles:
-[1] Global Administrator (Expires: 2025-01-15 3:00 PM)
-[2] Security Administrator (Expires: 2025-01-15 5:30 PM)
-[3] User Administrator (Expires: 2025-01-15 4:15 PM)
+### 🧭 Workflow Selection
+![Step 1 - Workflow Selection](/images/Deactivation%20Workflow/PIM-Global-SelfActivate%20-%20Step%202%20-%20Workflow%20Selection.png)
 
-Selection: 1,3
-Justification: Project completed - no longer need elevated access
-✅ Successfully deactivated 2 roles
-📊 Audit trail recorded with justification
-```
+### 🛑 Role Selection (Deactivation)
+![Step 2 - Role Selection (Deactivation)](/images/Deactivation%20Workflow/PIM-Global-SelfActivate%20-%20Step%201%20-%20Role%20Selection.png)
 
----
+### ✔️ Role Deactivation Successful
+![Step 3 - Role Deactivation Successful](/images/Deactivation%20Workflow/PIM-Global-SelfActivate%20-%20Step%203-%20Role%20Deactivaiton%20Sucessfull.png)
+
+### 📭 No More Workflows Available
+![Step 4 - No More Workflows Available](/images/Deactivation%20Workflow/PIM-Global-SelfActivate%20-%20Step%204%20-%20No%20More%20Workflows%20Available.png)
+
 
 ## 🔧 Configuration
 
@@ -212,6 +199,32 @@ This tool implements enterprise-grade security:
 - Activate or deactivate multiple roles in a single session
 - Batch processing for efficient role management
 - Smart role conflict detection
+
+### 🎭 Multi-Role Selection
+![Step 1 - Role Selection Menu (Multiple)](/images/Advance%20Features/Multi-Role%20Selection/PIM-Global-SelfActivate%20-%20Step%201%20-%20Role%20Selection%20Menu%20(Multiple).png)
+
+### ⏳ Duration Selection
+![Step 2 - Multi-Role Duration Entry](/images/Advance%20Features/Multi-Role%20Selection/PIM-Global-SelfActivate%20-%20Step%202%20-%20Multi-Role%20Duration%20Entry.png)
+
+### 📝 Justification
+![Step 3 - Multi-Role Justification](/images/Advance%20Features/Multi-Role%20Selection/PIM-Global-SelfActivate%20-%20Step%203%20-%20Multi-Role%20Justification.png)
+
+### ⚡ Activating Role
+![Step 4 - Multi-Role Activation Successful](/images/Advance%20Features/Multi-Role%20Selection/PIM-Global-SelfActivate%20-%20Step%204%20-%20Multi-Role%20Activation%20Successful.png)
+
+### 📭 No More Roles to Manage
+![Step 5 - No More Multi-Role Management](/images/Advance%20Features/Multi-Role%20Selection/PIM-Global-SelfActivate%20-%20Step%205%20-%20No%20More%20Multi-Role%20Management.png)
+
+### 🏁 Multi-Role Flow Complete
+![Step 6 - Multi-Role Flow Complete](/images/Advance%20Features/Multi-Role%20Selection/PIM-Global-SelfActivate%20-%20Step%206%20-%20Multi-Role%20Flow%20Complete.png)
+
+### **5-Minute Deactivation Timer**
+- **Smart Protection:** Enforces a 5-minute minimum activation period to prevent accidental immediate deactivation of newly activated roles  
+- **Real-time Countdown:** Displays live countdown timers showing when each role becomes eligible for deactivation, with option to skip if needed  
+- **User-friendly Interface:** Provides clear visual feedback and automatic progression to deactivation workflow once the timer completes  
+
+### ⏱️ 5-Minute Minimum Activation Timer
+![5-Minute Minimum Activation Timer](/images/Advance%20Features/5%20Minute%20Minimum%20Activation%20Timer/5-Minute%20Minimum%20Activation%20Timer.png)
 
 ### **Interactive Session Mode**
 - Perform multiple PIM operations without re-authentication
