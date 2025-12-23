@@ -29,63 +29,13 @@ function Clear-ExpiredCache {
 # Initialize cache on script start
 Initialize-PIMCache
 
-# OPTIMIZED: Centralized role definition caching function
-function Get-CachedRoleDefinition {
-    param([string]$RoleId)
-    
-    # Check if we have cached data that's still fresh (within 5 minutes)
-    if ($global:RoleDefinitionCache.ContainsKey($RoleId) -and 
-        $global:RoleDefinitionCacheTime -and 
-        ((Get-Date) - $global:RoleDefinitionCacheTime).TotalSeconds -lt 300) {
-        return $global:RoleDefinitionCache[$RoleId]
-    }
-    
-    # Fetch and cache the role definition
-    try {
-        $roleDefinition = Get-MgRoleManagementDirectoryRoleDefinition -UnifiedRoleDefinitionId $RoleId
-        $global:RoleDefinitionCache[$RoleId] = $roleDefinition
-        $global:RoleDefinitionCacheTime = Get-Date
-        return $roleDefinition
-    } catch {
-        # Return a fallback object if API call fails
-        $fallback = [PSCustomObject]@{
-            DisplayName = "Unknown Role"
-            Id = $RoleId
-        }
-        $global:RoleDefinitionCache[$RoleId] = $fallback
-        return $fallback
-    }
-}
-
 <#
-    Global PIM Manager Script (Activation + Deactivation) with Teams Notifications
-    ------------------------------------------------------------------------------
+    Global PIM Manager Script (Activation + Deactivation) - Self-Activating Organizations
+    --------------------------------------------------------------------------------------
     - Detects and deactivates active roles (with justification)
     - Falls back to activation if no roles are active
     - Supports group-based and user-based eligibilities
     - MFA-enforced MSAL login via browser
-    - Sends Teams notifications via webhook for successful operations
-    
-    FEATURES:
-    =========
-    
-    🔔 Teams Integration:
-       - Automatic notifications for successful role activations and deactivations
-       - Rich adaptive cards with role details, user info, and timestamps
-       - Configurable webhook URL and notification toggle
-       - Timezone-aware timestamps with proper abbreviations
-    
-    📋 Adaptive Card Features:
-       - Role operation type (Activation/Deactivation) with appropriate icons
-       - User email, role name, and justification
-       - Duration and expiry time for activations
-       - Localized date/time with timezone abbreviation
-       - Color-coded themes (Blue for activation, Orange for deactivation)
-    
-    ⚙️ Configuration:
-       - Set $teamsWebhookUrl to your Teams webhook URL
-       - Set $enableTeamsNotifications to $false to disable notifications
-       - Webhook creation guide: Teams Channel → More options → Manage channel → Edit → Incoming Webhook → Add
     
     🚀 Performance Optimizations:
        - API Response Caching: 60-80% faster repeated calls
@@ -93,10 +43,6 @@ function Get-CachedRoleDefinition {
        - Targeted API Filters: 40% less network traffic
        - Optimized UI Updates: 30% less CPU usage
        - Smart Module Loading: Faster startup with required modules only
-    
-    📚 References:
-       - Microsoft Teams Webhooks: https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook
-       - Adaptive Cards Schema: http://adaptivecards.io/schemas/adaptive-card.json
 #>
 
 # ========================= Global Variables =========================
@@ -298,7 +244,6 @@ function Show-DynamicExpirationMenu {
             # Filter out expired roles and check if any remain
             $activeRoleData = @()
             $activeSelected = @()
-            $newCurrentIndex = $currentIndex
             
             for ($i = 0; $i -lt $RoleExpirationData.Count; $i++) {
                 $roleData = $RoleExpirationData[$i]
@@ -356,13 +301,13 @@ function Show-DynamicExpirationMenu {
                 # Ask if user wants to manage more roles
                 do {
                     [Console]::SetCursorPosition(42, [Console]::CursorTop - 2)
-                    $input = Read-Host
-                    $input = $input.Trim().ToUpper()
-                    if ($input -eq "Y" -or $input -eq "YES") {
+                    $userInput = Read-Host
+                    $userInput = $userInput.Trim().ToUpper()
+                    if ($userInput -eq "Y" -or $userInput -eq "YES") {
                         [Console]::CursorVisible = $true
                         Start-PIMRoleManagement -CurrentUserId $script:CurrentUserId
                         return
-                    } elseif ($input -eq "N" -or $input -eq "NO") {
+                    } elseif ($userInput -eq "N" -or $userInput -eq "NO") {
                         Write-Host "❌ No role management workflows available." -ForegroundColor Red
                     Write-Host ""
                     Write-Host "Check back later when roles are approved or activated." -ForegroundColor Gray
@@ -465,6 +410,95 @@ function Show-DynamicExpirationMenu {
     }
 }
 
+# Show-DeactivationCountdown - displays countdown timer for 5-minute activation period
+function Show-DeactivationCountdown {
+    param(
+        [array]$TooNewRoles
+    )
+    
+    try {
+        [Console]::CursorVisible = $false
+    
+        # Build static header content once
+        $headerLines = @()
+        $headerLines += "[ P I M - G L O B A L ]"
+        $headerLines += ""
+        $headerLines += "⏰ Time Remaining Until Roles Can Be Deactivated"
+        $headerLines += "   (5-minute minimum activation period required)"
+        $headerLines += ""
+        
+        do {
+            # Clear and redraw header every time for clean display
+            Clear-Host
+            foreach ($line in $headerLines) {
+                if ($line -eq "[ P I M - G L O B A L ]") {
+                    Write-Host $line -ForegroundColor Magenta
+                } elseif ($line -eq "⏰ Time Remaining Until Roles Can Be Deactivated") {
+                    Write-Host $line -ForegroundColor Yellow
+                } elseif ($line -eq "   (5-minute minimum activation period required)") {
+                    Write-Host $line -ForegroundColor Gray
+                } else {
+                    Write-Host $line
+                }
+            }
+            
+            $allReady = $true
+            
+            foreach ($roleInfo in $TooNewRoles) {
+                try {
+                    $activationTime = $roleInfo.ActivationTime
+                    $deactivationTime = $activationTime.AddMinutes(5)
+                    $timeRemaining = $deactivationTime - (Get-Date)
+                    
+                    if ($timeRemaining.TotalSeconds -gt 0) {
+                        $allReady = $false
+                        $minutes = [int][math]::Floor($timeRemaining.TotalMinutes)
+                        $seconds = [int][math]::Floor($timeRemaining.TotalSeconds % 60)
+                        $timeDisplay = "{0:D2}:{1:D2}" -f $minutes, $seconds
+                        
+                        Write-Host "  ⏳ $($roleInfo.RoleName): $timeDisplay remaining" -ForegroundColor Cyan
+                    } else {
+                        Write-Host "  ✅ $($roleInfo.RoleName): Ready for deactivation!" -ForegroundColor Green
+                    }
+                } catch {
+                    Write-Host "  ❓ $($roleInfo.RoleName): Unable to check" -ForegroundColor Yellow
+                }
+            }
+            
+            Write-Host ""
+            Write-Host "Any key to skip countdown | Ctrl+Q Exit" -ForegroundColor Magenta
+            
+            # Check if user pressed a key to skip
+            if ([Console]::KeyAvailable) {
+                $key = [Console]::ReadKey($true)
+                if ($key.Key -eq 'Q' -and $key.Modifiers -eq 'Control') {
+                    [Console]::CursorVisible = $true
+                    exit
+                }
+                Write-Host "Countdown skipped by user." -ForegroundColor Yellow
+                return $false
+            }
+            
+            if (-not $allReady) {
+                Start-Sleep -Seconds 1
+            }
+            
+        } while (-not $allReady)
+        
+        # All roles are ready
+        Clear-Host
+        Show-PIMGlobalHeaderMinimal
+        Write-Host ""
+        Write-Host "✅ All roles are now eligible for deactivation!" -ForegroundColor Green
+        Write-Host ""
+        Start-Sleep -Seconds 2
+        return $true
+        
+    } finally {
+        [Console]::CursorVisible = $true
+    }
+}
+
 function Start-RoleDeactivationWorkflowWithCheck {
     param([string]$CurrentUserId)
     
@@ -481,8 +515,8 @@ function Start-RoleDeactivationWorkflowWithCheck {
             # Ask if user wants to activate roles instead
             $response = Read-PIMInput -Prompt "Would you like to activate roles instead? (Y/N)" -ForegroundColor Cyan
             
-            $input = $response.Trim().ToUpper()
-            if ($input -eq "Y" -or $input -eq "YES") {
+            $userInput = $response.Trim().ToUpper()
+            if ($userInput -eq "Y" -or $userInput -eq "YES") {
                 $eligibleRoles = Get-EligibleRolesOptimized -CurrentUserId $CurrentUserId
                 if ($eligibleRoles.Count -gt 0) {
                     Start-RoleActivationWorkflow -ValidRoles $eligibleRoles -CurrentUserId $CurrentUserId
@@ -490,7 +524,7 @@ function Start-RoleDeactivationWorkflowWithCheck {
                     Write-Host "❌ No eligible roles available for activation." -ForegroundColor Red
                 }
                 return
-            } elseif ($input -eq "N" -or $input -eq "NO") {
+            } elseif ($userInput -eq "N" -or $userInput -eq "NO") {
                 Write-Host ""
                 Write-Host "❌ No role management workflows available." -ForegroundColor Red
                 Write-Host ""
@@ -759,13 +793,13 @@ function Start-RoleDeactivationWorkflowWithCheck {
             Write-Host "Would you like to activate roles instead? (Y/N): " -NoNewline -ForegroundColor Cyan
             Write-Host ""
             Write-Host "Ctrl+Q to exit" -ForegroundColor Magenta
-            $input = Read-Host
-            $input = $input.Trim().ToUpper()
-            if ($input -eq "Y" -or $input -eq "YES") {
+            $userInput = Read-Host
+            $userInput = $userInput.Trim().ToUpper()
+            if ($userInput -eq "Y" -or $userInput -eq "YES") {
                 Clear-Host
                 Start-PIMRoleManagement -CurrentUserId $CurrentUserId
                 return
-            } elseif ($input -eq "N" -or $input -eq "NO") {
+            } elseif ($userInput -eq "N" -or $userInput -eq "NO") {
                 Write-Host "No additional roles will be managed." -ForegroundColor Red
                 Write-Host "Please close the terminal." -ForegroundColor Yellow
                 Write-Host "Ctrl+Q Exit" -ForegroundColor Magenta
@@ -991,12 +1025,12 @@ function Start-RoleDeactivationWorkflowWithCheck {
     
     # Ask if user wants to manage more roles
     do {
-        $input = Read-PIMInput -Prompt "Would you like to manage more roles? (Y/N)" -ControlsText $script:ControlMessages['Exit']
-        $input = $input.Trim().ToUpper()
-        if ($input -eq "Y" -or $input -eq "YES") {
+        $userInput = Read-PIMInput -Prompt "Would you like to manage more roles? (Y/N)" -ControlsText $script:ControlMessages['Exit']
+        $userInput = $userInput.Trim().ToUpper()
+        if ($userInput -eq "Y" -or $userInput -eq "YES") {
             $continueChoice = "Yes"
             break
-        } elseif ($input -eq "N" -or $input -eq "NO") {
+        } elseif ($userInput -eq "N" -or $userInput -eq "NO") {
             $continueChoice = "No"
             break
         } else {
@@ -1292,12 +1326,12 @@ function Start-RoleDeactivationWorkflowWithCheck {
     
     # Ask if user wants to manage more roles
     do {
-        $input = Read-PIMInput -Prompt "Would you like to manage more roles? (Y/N)" -ControlsText $script:ControlMessages['Exit']
-        $input = $input.Trim().ToUpper()
-        if ($input -eq "Y" -or $input -eq "YES") {
+        $userInput = Read-PIMInput -Prompt "Would you like to manage more roles? (Y/N)" -ControlsText $script:ControlMessages['Exit']
+        $userInput = $userInput.Trim().ToUpper()
+        if ($userInput -eq "Y" -or $userInput -eq "YES") {
             $continueChoice = "Yes"
             break
-        } elseif ($input -eq "N" -or $input -eq "NO") {
+        } elseif ($userInput -eq "N" -or $userInput -eq "NO") {
             $continueChoice = "No"
             break
         } else {
@@ -1503,7 +1537,7 @@ function Show-PIMGlobalHeader {
         # Return cursor to inline position after the prompt
         [Console]::SetCursorPosition($promptLeft, $promptTop)
         
-        $input = ""
+        $inputText = ""
         do {
             $key = [Console]::ReadKey($true)
             
@@ -1535,30 +1569,30 @@ function Show-PIMGlobalHeader {
             }
             
             # Handle Backspace
-            if ($key.Key -eq 'Backspace' -and $input.Length -gt 0) {
-                $input = $input.Substring(0, $input.Length - 1)
+            if ($key.Key -eq 'Backspace' -and $inputText.Length -gt 0) {
+                $inputText = $inputText.Substring(0, $inputText.Length - 1)
                 Write-Host "`b `b" -NoNewline
             }
             
             # Handle regular characters
             elseif ($key.KeyChar -ne "`0" -and [char]::IsControl($key.KeyChar) -eq $false) {
-                $input += $key.KeyChar
+                $inputText += $key.KeyChar
                 Write-Host $key.KeyChar -NoNewline -ForegroundColor White
             }
         } while ($true)
         
         # Validate input if required
-        if ($Required -and [string]::IsNullOrWhiteSpace($input)) {
+        if ($Required -and [string]::IsNullOrWhiteSpace($inputText)) {
             Write-Host "Input is required." -ForegroundColor DarkRed
             return Read-PIMInput -Prompt $Prompt -ControlsText $ControlsText -Required:$Required -ValidationPattern $ValidationPattern -ValidationMessage $ValidationMessage
         }
         
-        if ($ValidationPattern -and $input -notmatch $ValidationPattern) {
+        if ($ValidationPattern -and $inputText -notmatch $ValidationPattern) {
             Write-Host $ValidationMessage -ForegroundColor DarkRed
             return Read-PIMInput -Prompt $Prompt -ControlsText $ControlsText -Required:$Required -ValidationPattern $ValidationPattern -ValidationMessage $ValidationMessage
         }
         
-        return $input
+        return $inputText
     }
     
     # Dynamic Control Bar System
@@ -1740,26 +1774,6 @@ function Show-PIMGlobalHeader {
     
     # Optimized modules ready silently
     
-    # ========================= Teams Webhook Configuration =========================
-    # Configure your Teams webhook URL here
-    # To create a webhook: Teams Channel → More options → Manage channel → Edit → Incoming Webhook → Add
-    $teamsWebhookUrl = "https://cmaorrtech.webhook.office.com/webhookb2/102682b7-85c6-4c3e-b98b-c3b460fe8011@51eb883f-451f-4194-b108-4df354b35bf4/IncomingWebhook/33c507565393483ab034c8d19ed3c1fb/8cc8faec-1b97-40f0-ab11-eddcf89d54a1/V2HLN3VPRcvQK5pVYjkVjRpzG6-seyiOIzAXbXB0U8e9A1"
-    
-    # Approval channel webhook URL (for approval-required roles)
-    $approvalChannelWebhookUrl = "https://cmaorrtech.webhook.office.com/webhookb2/d4f674d6-36f8-4e0a-9d2a-7cdb5d3bf196@51eb883f-451f-4194-b108-4df354b35bf4/IncomingWebhook/f2192c4bc3cf48fca3fcb5e93cb4d45a/8cc8faec-1b97-40f0-ab11-eddcf89d54a1/V21J6fdDWCg3a4nctZ5U_fF7NGWprF4HPd6EYQEORq4kk1"
-    
-    # Power Automate URL for interactive approvals (for immediate activation roles)
-    $powerAutomateApprovalUrl = "https://default51eb883f451f4194b1084df354b35b.f4.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/6805f3b5957f452d96dafd153561d04d/triggers/manual/paths/invoke/?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=oARAEv9M68wOCUwUMDpt1oEiqDd7We84z3f6aY45h2A"
-    
-    # Enable/disable Teams notifications (set to $false if experiencing hangs)
-    $enableTeamsNotifications = $true
-    
-    # Enable/disable batching multiple role requests into single approval
-    $enableBatchApprovals = $false
-    
-    # Azure PIM Portal URL for approvals
-    $pimApprovalUrl = "https://portal.azure.com/?Microsoft_Azure_PIMCommon=true#view/Microsoft_Azure_PIMCommon/ApproveRequestMenuBlade/~/aadmigratedroles"
-    
     # ========================= ACTIVATION WORKFLOW =========================
     function Start-RoleActivationWorkflow {
         param(
@@ -1934,7 +1948,7 @@ function Show-PIMGlobalHeader {
                 return
             }
             
-            Flush-ConsoleInput
+            Clear-ConsoleBuffer
         
             # Duration input - add to existing display
             do {
@@ -1983,7 +1997,6 @@ function Show-PIMGlobalHeader {
         
         $successCount = 0
         $failCount = 0
-        $warningCount = 0
         
         foreach ($index in $selectedIndices) {
             $role = $ValidRoles[$index]
@@ -2034,12 +2047,12 @@ function Show-PIMGlobalHeader {
         
         # Ask if user wants to manage more roles
         do {
-            $input = Read-PIMInput -Prompt "Would you like to manage more roles? (Y/N)" -ControlsText $script:ControlMessages['Exit']
-            $input = $input.Trim().ToUpper()
-            if ($input -eq "Y" -or $input -eq "YES") {
+            $userInput = Read-PIMInput -Prompt "Would you like to manage more roles? (Y/N)" -ControlsText $script:ControlMessages['Exit']
+            $userInput = $userInput.Trim().ToUpper()
+            if ($userInput -eq "Y" -or $userInput -eq "YES") {
                 $continueChoice = "Yes"
                 break
-            } elseif ($input -eq "N" -or $input -eq "NO") {
+            } elseif ($userInput -eq "N" -or $userInput -eq "NO") {
                 $continueChoice = "No"
                 break
             } else {
@@ -2083,139 +2096,6 @@ function Show-PIMGlobalHeader {
             } while ($true)
         }
     }
-    
-    # ========================= Toast Notification Functions =========================
-    function Show-ToastNotification {
-        param(
-            [string]$Title,
-            [string]$Message,
-            [string]$Type = "Success"
-        )
-        
-        try {
-            # Use PowerShell's built-in toast notification capability
-            # This is the most reliable method for PowerShell scripts
-            $null = [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime]
-            $null = [Windows.Data.Xml.Dom.Xml
-            Document, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime]
-            
-            # Create the toast template with image support
-            $template = [Windows.UI.Notifications.ToastNotificationManager]::GetTemplateContent([Windows.UI.Notifications.ToastTemplateType]::ToastImageAndText02)
-            
-            # Add custom logo or system icon based on availability
-            $imageElements = $template.GetElementsByTagName("image")
-            if ($imageElements.Count -gt 0) {
-                # Check for custom logo files (in order of preference)
-                $customLogo = $null
-                $logoFiles = @(
-                    (Join-Path $PSScriptRoot "PIM.ico"),
-                    (Join-Path $PSScriptRoot "pim-logo.ico"),
-                    (Join-Path $PSScriptRoot "pim-logo.png"),
-                    (Join-Path $PSScriptRoot "logo.ico"),
-                    (Join-Path $PSScriptRoot "logo.png")
-                )
-                
-                foreach ($logoFile in $logoFiles) {
-                    if (Test-Path $logoFile) {
-                        $customLogo = $logoFile
-                        break
-                    }
-                }
-                
-                if ($customLogo) {
-                    # Use custom logo
-                    $logoUri = $customLogo.Replace('\', '/')
-                    $imageElements[0].SetAttribute("src", "file:///$logoUri")
-                } else {
-                    # Use system icons based on type
-                    switch ($Type) {
-                        "Success" { 
-                            $imageElements[0].SetAttribute("src", "ms-appx:///Assets/Square44x44Logo.png")
-                        }
-                        "Warning" { 
-                            $imageElements[0].SetAttribute("src", "ms-appx:///Assets/Square44x44Logo.altform-unplated_targetsize-48.png")
-                        }
-                        "Error" { 
-                            $imageElements[0].SetAttribute("src", "ms-appx:///Assets/Square44x44Logo.altform-unplated_targetsize-48.png")
-                        }
-                        default { 
-                            $imageElements[0].SetAttribute("src", "ms-appx:///Assets/Square44x44Logo.png")
-                        }
-                    }
-                }
-                $imageElements[0].SetAttribute("alt", "PIM Global")
-            }
-            
-            # Add visual styling based on type
-            if ($Type -eq "Warning") {
-                # Add warning styling to the toast XML
-                $toastElement = $template.SelectSingleNode("/toast")
-                if ($toastElement) {
-                    $toastElement.SetAttribute("scenario", "reminder")
-                }
-            }
-            
-            # Set the text
-            $template.GetElementsByTagName("text")[0].AppendChild($template.CreateTextNode($Title)) | Out-Null
-            $template.GetElementsByTagName("text")[1].AppendChild($template.CreateTextNode($Message)) | Out-Null
-            
-            # Create and show the toast
-            $toast = [Windows.UI.Notifications.ToastNotification]::new($template)
-            $toast.ExpirationTime = [DateTimeOffset]::Now.AddSeconds(10)
-            
-            # Use a generic Windows app identifier that should work
-            $appId = "Microsoft.Windows.Computer"
-            [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier($appId).Show($toast)
-            
-        } catch {
-            # Fallback to system tray balloon notification
-            try {
-                Add-Type -AssemblyName System.Windows.Forms
-                $balloon = New-Object System.Windows.Forms.NotifyIcon
-                $balloon.Icon = [System.Drawing.SystemIcons]::Information
-                $balloon.BalloonTipTitle = $Title
-                $balloon.BalloonTipText = $Message
-                $balloon.BalloonTipIcon = "Info"
-                $balloon.Visible = $true
-                $balloon.ShowBalloonTip(5000)
-                
-                # Clean up after showing
-                Start-Job -ScriptBlock {
-                    param($balloon)
-                    Start-Sleep -Seconds 6
-                    $balloon.Dispose()
-                } -ArgumentList $balloon | Out-Null
-                
-            } catch {
-                # Final fallback - just continue silently
-            }
-        }
-    }
-    
-    # ========================= Teams Notification Functions =========================
-    function Get-TimeZoneAbbreviation {
-        $tz = Get-TimeZone
-        $now = Get-Date
-        $offset = $tz.GetUtcOffset($now)
-        $isDst = $tz.IsDaylightSavingTime($now)
-        $abbr = $tz.Id
-        # Try to get a common abbreviation
-        switch ($tz.Id) {
-            'Pacific Standard Time' { $abbr = if ($isDst) { 'PDT' } else { 'PST' } }
-            'Mountain Standard Time' { $abbr = if ($isDst) { 'MDT' } else { 'MST' } }
-            'Central Standard Time' { $abbr = if ($isDst) { 'CDT' } else { 'CST' } }
-            'Eastern Standard Time' { $abbr = if ($isDst) { 'EDT' } else { 'EST' } }
-            'UTC' { $abbr = 'UTC' }
-            default { $abbr = $tz.Id }
-        }
-        return $abbr
-    }
-    
-    # REMOVED: Teams notification functions - not needed for self-activating organizations
-    
-    # REMOVED: Power Automate approval functions - not needed for self-activating organizations
-    
-    # REMOVED: All remaining notification functions - not needed for self-activating organizations
     
     # ========================= 1) Config & Login =========================
     $clientId = "bf34fc64-bbbc-45cb-9124-471341025093"
@@ -2312,366 +2192,15 @@ function Show-PIMGlobalHeader {
         return $formatted
     }
     
-    # Advanced: Smart UI updates with change detection
-    $global:LastUIState = @{}
-    function Update-UIIfChanged {
-        param(
-            [string]$Key,
-            [string]$NewContent,
-            [int]$Line,
-            [ConsoleColor]$Color = "White"
-        )
-        
-        if ($global:LastUIState[$Key] -ne $NewContent) {
-            [Console]::SetCursorPosition(0, $Line)
-            Write-Host $NewContent.PadRight([Console]::WindowWidth - 1) -ForegroundColor $Color
-            $global:LastUIState[$Key] = $NewContent
-            Add-PerformanceMetric -Type "UIUpdates"
-            return $true  # Changed
-        }
-        Add-PerformanceMetric -Type "UISkipped"
-        return $false  # No change
-    }
-    
-    # Advanced: Memory optimization
-    function Optimize-Memory {
-        # Force garbage collection for better performance
-        [System.GC]::Collect()
-        [System.GC]::WaitForPendingFinalizers()
-        
-        # Clear time format cache if it gets too large
-        if ($global:TimeFormatCache.Count -gt 500) {
-            $global:TimeFormatCache.Clear()
-        }
-        
-        # Clear UI state cache periodically
-        if ($global:LastUIState.Count -gt 100) {
-            $global:LastUIState.Clear()
-        }
-    }
-    
-    # Advanced: Batch Graph API calls for maximum efficiency
-    function Invoke-BatchGraphRequest {
-        param(
-            [array]$Requests,
-            [int]$BatchSize = 20
-        )
-        
-        if ($Requests.Count -eq 0) { return @() }
-        
-        $results = @()
-        
-        for ($i = 0; $i -lt $Requests.Count; $i += $BatchSize) {
-            $batch = $Requests[$i..[math]::Min($i + $BatchSize - 1, $Requests.Count - 1)]
-            
-            $batchRequest = @{
-                requests = @()
-            }
-            
-            for ($j = 0; $j -lt $batch.Count; $j++) {
-                $batchRequest.requests += @{
-                    id = $j.ToString()
-                    method = if ($batch[$j].Method) { $batch[$j].Method } else { "GET" }
-                    url = $batch[$j].Url
-                }
-            }
-            
-            try {
-                $response = Invoke-MgGraphRequest -Method POST -Uri "https://graph.microsoft.com/v1.0/`$batch" -Body ($batchRequest | ConvertTo-Json -Depth 3)
-                if ($response.responses) {
-                    foreach ($resp in $response.responses) {
-                        if ($resp.status -eq 200 -and $resp.body) {
-                            $results += $resp.body
-                        }
-                    }
-                }
-            } catch {
-                Write-Host "⚠️  Batch request failed, using individual calls" -ForegroundColor Yellow
-                # Fallback to individual calls
-                foreach ($request in $batch) {
-                    try {
-                        $result = Invoke-MgGraphRequest -Method GET -Uri $request.Url
-                        if ($result) { $results += $result }
-                    } catch {
-                        # Skip failed individual requests
-                    }
-                }
-            }
-            
-            # Small delay between batches to avoid throttling
-            if ($i + $BatchSize -lt $Requests.Count) {
-                Start-Sleep -Milliseconds 100
-            }
-        }
-        
-        return $results
-    }
-    
-    # Advanced: Persistent disk cache for multi-session performance
-    $global:CacheDirectory = Join-Path $env:TEMP "PIMGlobalCache"
-    $global:DiskCacheExpiryHours = 1
-    
-    function Initialize-DiskCache {
-        if (-not (Test-Path $global:CacheDirectory)) {
-            New-Item -ItemType Directory -Path $global:CacheDirectory -Force | Out-Null
-        }
-        
-        # Clean old cache files (older than 1 hour)
-        Get-ChildItem $global:CacheDirectory -Filter "*.json" -ErrorAction SilentlyContinue | Where-Object {
-            $_.LastWriteTime -lt (Get-Date).AddHours(-$global:DiskCacheExpiryHours)
-        } | Remove-Item -Force -ErrorAction SilentlyContinue
-    }
-    
-    function Get-DiskCachedData {
-        param(
-            [string]$Key,
-            [scriptblock]$DataProvider,
-            [int]$ExpiryMinutes = 30
-        )
-        
-        $cacheFile = Join-Path $global:CacheDirectory "$Key.json"
-        
-        # Check if cache file exists and is not expired
-        if (Test-Path $cacheFile) {
-            $cacheInfo = Get-Item $cacheFile
-            if ($cacheInfo.LastWriteTime -gt (Get-Date).AddMinutes(-$ExpiryMinutes)) {
-                try {
-                    $cachedData = Get-Content $cacheFile -Raw | ConvertFrom-Json
-                    return $cachedData
-                } catch {
-                    # Cache corrupted, will regenerate
-                }
-            }
-        }
-        
-        # Generate fresh data
-        $freshData = & $DataProvider
-        
-        # Save to cache
-        try {
-            $freshData | ConvertTo-Json -Depth 10 | Out-File $cacheFile -Encoding UTF8
-                    } catch {
-            # Cache write failed, continue without caching
-        }
-        
-        return $freshData
-    }
-    
-    # Advanced: Async operations for background processing
-    function Start-AsyncOperation {
-        param(
-            [scriptblock]$Operation,
-            [string]$Name = "AsyncOp",
-            [hashtable]$Parameters = @{}
-        )
-        
-        # PowerShell 7+ job-based async simulation
-        $job = Start-Job -ScriptBlock $Operation -ArgumentList $Parameters -Name $Name
-        return $job
-    }
-    
-    function Wait-AsyncOperations {
-        param([array]$Jobs, [int]$TimeoutSeconds = 30)
-        
-        $results = @()
-        $completedJobs = @()
-        
-        # Wait for jobs with timeout
-        $timeout = (Get-Date).AddSeconds($TimeoutSeconds)
-        
-        while ($Jobs.Count -gt $completedJobs.Count -and (Get-Date) -lt $timeout) {
-            foreach ($job in $Jobs) {
-                if ($job.State -eq 'Completed' -and $job -notin $completedJobs) {
-                    try {
-                        $result = Receive-Job $job
-                        if ($result) { $results += $result }
-                        $completedJobs += $job
-                        Remove-Job $job
-                    } catch {
-                        # Job failed, skip it
-                        $completedJobs += $job
-                        Remove-Job $job
-                    }
-                }
-            }
-            Start-Sleep -Milliseconds 100
-        }
-        
-        # Clean up any remaining jobs
-        foreach ($job in $Jobs) {
-            if ($job -notin $completedJobs) {
-                Stop-Job $job -ErrorAction SilentlyContinue
-                Remove-Job $job -ErrorAction SilentlyContinue
-            }
-        }
-        
-        return $results
-    }
-    
-    # Advanced: Predictive caching based on usage patterns
-    $global:AccessPatterns = @{}
-    $global:PredictiveCache = @{}
-    
-    function Track-DataAccess {
-        param([string]$Key, [string]$Operation = "read")
-        
-        if (-not $global:AccessPatterns.ContainsKey($Key)) {
-            $global:AccessPatterns[$Key] = @{
-                Count = 0
-                LastAccessed = Get-Date
-                AccessTimes = @()
-                Operations = @()
-            }
-        }
-        
-        $pattern = $global:AccessPatterns[$Key]
-        $pattern.Count++
-        $pattern.LastAccessed = Get-Date
-        $pattern.AccessTimes += Get-Date
-        $pattern.Operations += $Operation
-        
-        # Keep only last 10 access times to prevent memory bloat
-        if ($pattern.AccessTimes.Count -gt 10) {
-            $pattern.AccessTimes = $pattern.AccessTimes[-10..-1]
-            $pattern.Operations = $pattern.Operations[-10..-1]
-        }
-    }
-    
-    function Get-PredictiveCacheKeys {
-        # Return keys that are likely to be accessed soon based on patterns
-        $hotKeys = $global:AccessPatterns.Keys | Where-Object {
-            $pattern = $global:AccessPatterns[$_]
-            $pattern.Count -gt 2 -and
-            ((Get-Date) - $pattern.LastAccessed).TotalMinutes -lt 15
-        } | Sort-Object { $global:AccessPatterns[$_].Count } -Descending
-        
-        return $hotKeys | Select-Object -First 5
-    }
-    
-    function Start-PredictivePreload {
-        # Background job to preload likely-needed data
-        $predictiveKeys = Get-PredictiveCacheKeys
-        
-        foreach ($key in $predictiveKeys) {
-            if (-not $global:PredictiveCache.ContainsKey($key)) {
-                # Start async preload based on key pattern
-                if ($key -match "schedule") {
-                    $job = Start-AsyncOperation -Name "Preload_$key" -Operation {
-                        # Preload schedule data
-                        try {
-                            Get-MgRoleManagementDirectoryRoleAssignmentSchedule -All | Select-Object -First 50
-                        } catch { $null }
-                    }
-                    $global:PredictiveCache[$key] = @{ Job = $job; StartTime = Get-Date }
-                }
-            }
-        }
-        
-        # Clean up old preload jobs
-        $expiredKeys = $global:PredictiveCache.Keys | Where-Object {
-            ((Get-Date) - $global:PredictiveCache[$_].StartTime).TotalMinutes -gt 5
-        }
-        foreach ($key in $expiredKeys) {
-            if ($global:PredictiveCache[$key].Job) {
-                Stop-Job $global:PredictiveCache[$key].Job -ErrorAction SilentlyContinue
-                Remove-Job $global:PredictiveCache[$key].Job -ErrorAction SilentlyContinue
-            }
-            $global:PredictiveCache.Remove($key)
-        }
-    }
-    
-    # Advanced: Performance monitoring and metrics
-    $global:PerformanceMetrics = @{
-        APICallCount = 0
-        CacheHits = 0
-        CacheMisses = 0
-        BatchedCalls = 0
-        IndividualCalls = 0
-        StartTime = Get-Date
-        UIUpdates = 0
-        UISkipped = 0
-    }
-    
-    function Add-PerformanceMetric {
-        param([string]$Type, [int]$Count = 1)
-        
-        if ($global:PerformanceMetrics.ContainsKey($Type)) {
-            $global:PerformanceMetrics[$Type] += $Count
-        }
-    }
-    
-    function Get-PerformanceReport {
-        $runtime = (Get-Date) - $global:PerformanceMetrics.StartTime
-        $cacheHitRate = if (($global:PerformanceMetrics.CacheHits + $global:PerformanceMetrics.CacheMisses) -gt 0) {
-            [math]::Round(($global:PerformanceMetrics.CacheHits / ($global:PerformanceMetrics.CacheHits + $global:PerformanceMetrics.CacheMisses)) * 100, 1)
-        } else { 0 }
-        
-        $uiEfficiency = if (($global:PerformanceMetrics.UIUpdates + $global:PerformanceMetrics.UISkipped) -gt 0) {
-            [math]::Round(($global:PerformanceMetrics.UISkipped / ($global:PerformanceMetrics.UIUpdates + $global:PerformanceMetrics.UISkipped)) * 100, 1)
-        } else { 0 }
-        
-        return @{
-            Runtime = $runtime.ToString("mm\:ss")
-            APICallCount = $global:PerformanceMetrics.APICallCount
-            CacheHitRate = "$cacheHitRate%"
-            BatchEfficiency = "$($global:PerformanceMetrics.BatchedCalls) batched vs $($global:PerformanceMetrics.IndividualCalls) individual"
-            UIEfficiency = "$uiEfficiency% updates skipped (smart rendering)"
-        }
-    }
-    
-    
-    
-    function Show-StartupDashboard {
-    Write-Host ""
-        Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-        Write-Host "║                    🚀 PIM PERFORMANCE STATS                  ║" -ForegroundColor Cyan
-        Write-Host "╠══════════════════════════════════════════════════════════════╣" -ForegroundColor Cyan
-        
-        # Get current performance metrics
-        $report = Get-PerformanceReport
-        $currentTime = Get-Date
-        
-        # Calculate some startup stats
-        $cacheStatus = if (Test-Path $global:CacheDirectory) { "✅ Active" } else { "⚠️  Initializing" }
-        $optimizationsStatus = "✅ Loaded"
-        
-        Write-Host "║  📊 Cache Status: $($cacheStatus.PadRight(42)) ║" -ForegroundColor White
-        Write-Host "║  ⚡ Optimizations: $($optimizationsStatus.PadRight(40)) ║" -ForegroundColor White
-        Write-Host "║  🕐 Session Start: $($currentTime.ToString('MM/dd/yyyy hh:mm tt').PadRight(39)) ║" -ForegroundColor White
-        Write-Host "║  🎯 Ready for role management operations                     ║" -ForegroundColor Green
-        Write-Host "╠══════════════════════════════════════════════════════════════╣" -ForegroundColor Cyan
-        Write-Host "║                      ⌨️  KEYBOARD SHORTCUTS                   ║" -ForegroundColor Yellow
-        Write-Host "╠══════════════════════════════════════════════════════════════╣" -ForegroundColor Cyan
-        Write-Host "║  Ctrl+R  → Refresh role status        Ctrl+Q → Quick exit    ║" -ForegroundColor Gray
-        Write-Host "║  ESC → Cancel/Back                     Space → Toggle select  ║" -ForegroundColor Gray
-        Write-Host "║  Ctrl+A  → Auto-select all roles      Space → Toggle select  ║" -ForegroundColor Gray
-        Write-Host "║  Ctrl+D  → Deactivate all active      Enter → Confirm        ║" -ForegroundColor Gray
-        Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
-        Write-Host ""
-        Write-Host "Press any key to continue..." -ForegroundColor DarkGray
-        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-        Clear-Host
-    }
-    
     function Get-CachedSchedules {
         param([string]$CurrentUserId)
         
-        Track-DataAccess -Key "schedules" -Operation "read"
-        
-        # FORCE FRESH DATA - NO CACHING
-        Add-PerformanceMetric -Type "CacheMisses"
-        
-        # Always fetch fresh data - no cache check - MATCH PROGRESS.PS1 EXACTLY
+        # Always fetch fresh data
         try {
-            Add-PerformanceMetric -Type "APICallCount"
-            # Get schedule requests (for activation timestamps) instead of just schedules - OPTIMIZED
             $freshSchedules = Get-MgRoleManagementDirectoryRoleAssignmentScheduleRequest -Filter "PrincipalId eq '$CurrentUserId'" -Top 50
-            
-            # Return fresh data without caching
             return $freshSchedules
         } catch {
             Write-Host "⚠️ Filter not supported, falling back to full fetch..." -ForegroundColor Yellow
-            # Fallback to original method if filter not supported - EXACT MATCH TO PROGRESS.PS1
             $freshSchedules = Get-MgRoleManagementDirectoryRoleAssignmentSchedule -All | Where-Object { 
                 $_.PrincipalId -eq $CurrentUserId 
             }
@@ -2732,7 +2261,7 @@ function Show-PIMGlobalHeader {
                         exit 1
     }
     
-    function Flush-ConsoleInput {
+    function Clear-ConsoleBuffer {
         while ([Console]::KeyAvailable) {
             [Console]::ReadKey($true) | Out-Null
         }
@@ -2784,7 +2313,6 @@ function Show-PIMGlobalHeader {
         
         # Prepare countdown data with parallel processing
         # Processing role expiration data silently
-        $roleTracker = @{}
         
         # Get cached schedules once
         $cachedSchedules = Get-CachedSchedules -CurrentUserId $currentUserId
@@ -3035,403 +2563,9 @@ function Show-PIMGlobalHeader {
                 # Optimized delay to prevent excessive CPU usage
                 Start-Sleep -Milliseconds 250
                 
-                # Periodic memory optimization and predictive preload (every ~40 seconds)
-                if ((Get-Random -Maximum 160) -eq 1) {
-                    Optimize-Memory
-                    Start-PredictivePreload
-                }
-                
         } while ($true)
         }
         finally {
-            [Console]::CursorVisible = $true
-        }
-    }
-    
-    
-    
-    function Show-EnhancedDeactivationCountdown {
-        param(
-            [array]$TooNewRoles,
-            [array]$ReadyRoles = @(),
-            [string]$CurrentUserId
-        )
-        
-        try {
-            [Console]::CursorVisible = $false
-        
-            # Deduplicate roles by name
-            $uniqueRoles = @{}
-            $deduplicatedRoles = @()
-            foreach ($roleInfo in $TooNewRoles) {
-                if (-not $uniqueRoles.ContainsKey($roleInfo.RoleName)) {
-                    $uniqueRoles[$roleInfo.RoleName] = $true
-                    $deduplicatedRoles += $roleInfo
-                }
-            }
-            
-            # Store initial cursor position and screen content
-            $initialCursorTop = [Console]::CursorTop
-            
-            # Build static header content once
-            $headerLines = @()
-            $headerLines += "[ P I M - G L O B A L ]"
-            $headerLines += ""
-            $headerLines += "⏰ Role Deactivation Countdown"
-            $headerLines += "   (5-minute minimum activation period required)"
-            $headerLines += ""
-            $headerLines += "🔒 Roles waiting for 5-minute period:"
-            
-            do {
-                # Clear and redraw header every time for clean display
-                Clear-Host
-                foreach ($line in $headerLines) {
-                    if ($line -eq "[ P I M - G L O B A L ]") {
-                        Write-Host $line -ForegroundColor Magenta
-                    } elseif ($line -eq "⏰ Role Deactivation Countdown") {
-                        Write-Host $line -ForegroundColor Yellow
-                    } elseif ($line -eq "   (5-minute minimum activation period required)") {
-                        Write-Host $line -ForegroundColor Gray
-                    } elseif ($line -eq "🔒 Roles waiting for 5-minute period:") {
-                        Write-Host $line -ForegroundColor Red
-                    } else {
-                        Write-Host $line
-                    }
-                }
-                
-                $allReady = $true
-                foreach ($roleInfo in $deduplicatedRoles) {
-                    try {
-                        # Use cached activation time instead of making API calls in countdown loop
-                        $activationTime = $roleInfo.ActivationTime
-                        $deactivationTime = $activationTime.AddMinutes(5)
-                        $timeRemaining = $deactivationTime - (Get-Date)
-                        
-                        if ($timeRemaining.TotalSeconds -gt 0) {
-                            $allReady = $false
-                            $hours = [int][math]::Floor($timeRemaining.TotalHours)
-                            $minutes = [int][math]::Floor($timeRemaining.TotalMinutes % 60)
-                            $seconds = [int][math]::Floor($timeRemaining.TotalSeconds % 60)
-                            $timeDisplay = "{0:D2}:{1:D2}:{2:D2}" -f $hours, $minutes, $seconds
-                            
-                            Write-Host "  ⏳ $($roleInfo.RoleName): $timeDisplay remaining" -ForegroundColor Cyan
-                        } else {
-                            Write-Host "  ✅ $($roleInfo.RoleName): Ready for deactivation" -ForegroundColor Green
-                        }
-                    } catch {
-                        Write-Host "  ❓ $($roleInfo.RoleName): Unable to check" -ForegroundColor Yellow
-                    }
-                }
-                
-                # Show ready roles if any
-                if ($ReadyRoles.Count -gt 0) {
-                    Write-Host ""
-                    Write-Host "✅ Roles ready for deactivation:" -ForegroundColor Green
-                    foreach ($role in $ReadyRoles) {
-                        Write-Host "  🔓 $($role.RoleName)" -ForegroundColor Green
-                    }
-                }
-                
-                # Show dynamic control bar
-                Show-DynamicControlBar -ControlsText $script:ControlMessages['Exit']
-                
-                # Check if all roles are ready
-                if ($allReady) {
-                    Write-Host "🎉 All roles are now ready for deactivation!" -ForegroundColor Green
-                    Write-Host "Launching deactivation workflow..." -ForegroundColor Cyan
-                    Start-Sleep -Seconds 2
-                    
-                    # Refresh and launch deactivation workflow
-                    $allRoles = $TooNewRoles + $ReadyRoles
-                    $allActiveRoles = @()
-                    foreach ($roleInfo in $allRoles) {
-                        if ($roleInfo.Assignment) {
-                            $allActiveRoles += @{
-                                RoleName = $roleInfo.RoleName
-                                Assignment = $roleInfo.Assignment
-                            }
-                        }
-                    }
-                    
-                    Start-RoleDeactivationWorkflow -ActiveRoles $allActiveRoles -CurrentUserId $CurrentUserId
-                    return
-                }
-                
-                # Check for user input (non-blocking)
-                if ([Console]::KeyAvailable) {
-                    $key = [Console]::ReadKey($true)
-                    
-                    # Check global shortcuts
-                    if (Test-GlobalShortcut -Key $key) {
-                        return
-                    }
-                    
-                    # Any other key skips countdown
-                    Write-Host "Countdown skipped by user." -ForegroundColor Yellow
-                    
-                    # If there are ready roles, show deactivation workflow
-                    if ($ReadyRoles.Count -gt 0) {
-                        Start-RoleDeactivationWorkflow -ActiveRoles $ReadyRoles -CurrentUserId $CurrentUserId
-                    } else {
-                        # Return to main menu
-                        return
-                    }
-                    return
-                }
-                
-                Start-Sleep -Seconds 1
-                
-            } while ($true)
-            
-        } finally {
-            [Console]::CursorVisible = $true
-        }
-    }
-    
-    function Show-CountdownWithMenu {
-        param(
-            [array]$TooNewRoles,
-            [string]$CurrentUserId
-        )
-        
-        try {
-            [Console]::CursorVisible = $false
-            
-            # Deduplicate roles by name
-            $uniqueRoles = @{}
-            $deduplicatedRoles = @()
-            foreach ($roleInfo in $TooNewRoles) {
-                if (-not $uniqueRoles.ContainsKey($roleInfo.RoleName)) {
-                    $uniqueRoles[$roleInfo.RoleName] = $true
-                    $deduplicatedRoles += $roleInfo
-                }
-            }
-            
-            # Build static header content once
-            $headerLines = @()
-            $headerLines += "[ P I M - G L O B A L ]"
-            $headerLines += ""
-            $headerLines += "⏰ Time Remaining Until Roles Can Be Deactivated"
-            $headerLines += "   (5-minute minimum activation period required)"
-            $headerLines += ""
-            $headerLines += "   The deactivation menu will automatically refresh when timers expire"
-            $headerLines += ""
-            
-            do {
-                # Clear and redraw header every time for clean display
-                Clear-Host
-                foreach ($line in $headerLines) {
-                    if ($line -eq "[ P I M - G L O B A L ]") {
-                        Write-Host $line -ForegroundColor Magenta
-                    } elseif ($line -eq "⏰ Time Remaining Until Roles Can Be Deactivated") {
-                        Write-Host $line -ForegroundColor Yellow
-                    } elseif ($line -eq "   (5-minute minimum activation period required)") {
-                        Write-Host $line -ForegroundColor Gray
-                    } elseif ($line -eq "   The deactivation menu will automatically refresh when timers expire") {
-                        Write-Host $line -ForegroundColor Cyan
-                    } else {
-                        Write-Host $line
-                    }
-                }
-                
-                $allReady = $true
-                
-                foreach ($roleInfo in $deduplicatedRoles) {
-                    try {
-                        $activationTime = $roleInfo.ActivationTime
-                        $deactivationTime = $activationTime.AddMinutes(5)
-                        $timeRemaining = $deactivationTime - (Get-Date)
-                        
-                        if ($timeRemaining.TotalSeconds -gt 0) {
-                            $allReady = $false
-                            $hours = [int][math]::Floor($timeRemaining.TotalHours)
-                            $minutes = [int][math]::Floor($timeRemaining.TotalMinutes % 60)
-                            $seconds = [int][math]::Floor($timeRemaining.TotalSeconds % 60)
-                            $timeDisplay = "{0:D2}:{1:D2}:{2:D2}" -f $hours, $minutes, $seconds
-                            
-                            Write-Host "  ⏳ $($roleInfo.RoleName): $timeDisplay remaining" -ForegroundColor Cyan
-                        } else {
-                            Write-Host "  ✅ $($roleInfo.RoleName): Ready for deactivation" -ForegroundColor Green
-                        }
-                    } catch {
-                        Write-Host "  ❓ $($roleInfo.RoleName): Unable to check" -ForegroundColor Yellow
-                    }
-                }
-                
-                Show-DynamicControlBar -ControlsText "Controls: Any key to skip countdown | Ctrl+Q to close terminal"
-                
-                # Check for user input (non-blocking)
-                if ([Console]::KeyAvailable) {
-                    $key = [Console]::ReadKey($true)
-                    
-                    # Check global shortcuts
-                    if (Test-GlobalShortcut -Key $key) {
-                        return
-                    }
-                    
-                    # Any other key skips countdown
-                    Write-Host "Countdown skipped by user." -ForegroundColor Yellow
-                    Start-Sleep -Seconds 1
-                    
-                    # Launch deactivation workflow with all roles
-                    $allActiveRoles = @()
-                    foreach ($roleInfo in $TooNewRoles) {
-                        if ($roleInfo.Assignment) {
-                            $allActiveRoles += @{
-                                RoleName = $roleInfo.RoleName
-                                Assignment = $roleInfo.Assignment
-                            }
-                        }
-                    }
-                    
-                    Start-RoleDeactivationWorkflow -ActiveRoles $allActiveRoles -CurrentUserId $CurrentUserId
-                    return
-                }
-                
-                if (-not $allReady) {
-                    Start-Sleep -Seconds 1
-                }
-                
-            } while (-not $allReady)
-        
-        [Console]::CursorVisible = $true
-            
-            if ($allReady) {
-                Clear-Host
-                Show-PIMGlobalHeaderMinimal
-                Write-Host ""
-                Write-Host "✅ All roles are now eligible for deactivation!" -ForegroundColor Green
-                Write-Host ""
-                Start-Sleep -Seconds 2
-                
-                # Launch deactivation workflow
-                $allActiveRoles = @()
-                foreach ($roleInfo in $TooNewRoles) {
-                    if ($roleInfo.Assignment) {
-                        $allActiveRoles += @{
-                            RoleName = $roleInfo.RoleName
-                            Assignment = $roleInfo.Assignment
-                        }
-                    }
-                }
-                
-                Start-RoleDeactivationWorkflow -ActiveRoles $allActiveRoles -CurrentUserId $CurrentUserId
-            }
-            
-        } finally {
-            [Console]::CursorVisible = $true
-        }
-    }
-    
-    function Show-DeactivationCountdown {
-        param(
-            [array]$TooNewRoles
-        )
-        
-        try {
-            [Console]::CursorVisible = $false
-        
-        Clear-Host
-        Show-PIMGlobalHeaderMinimal
-        Write-Host ""
-        Write-Host "⏰ Time Remaining Until Roles Can Be Deactivated" -ForegroundColor Yellow
-        Write-Host ""
-        Write-Host "   (5-minute minimum activation period required)" -ForegroundColor Gray
-        Write-Host ""
-        Write-Host "   The deactivation menu will automatically refresh when timers expire" -ForegroundColor Cyan
-        Write-Host ""
-        
-        # Remember the starting line for roles
-        $roleStartLine = [Console]::CursorTop
-        
-        # Deduplicate roles by name
-        $uniqueRoles = @{}
-        $deduplicatedRoles = @()
-        foreach ($roleInfo in $TooNewRoles) {
-            if (-not $uniqueRoles.ContainsKey($roleInfo.RoleName)) {
-                $uniqueRoles[$roleInfo.RoleName] = $true
-                $deduplicatedRoles += $roleInfo
-            }
-        }
-        
-        # Show initial role lines
-        foreach ($roleInfo in $deduplicatedRoles) {
-            Write-Host "  ⏳ $($roleInfo.RoleName): --:-- remaining" -ForegroundColor Cyan
-        }
-        Write-Host ""
-        Write-Host "Ctrl+Q to exit" -ForegroundColor Magenta
-        
-        do {
-            $allReady = $true
-            
-            # Update each role's countdown in place
-            for ($i = 0; $i -lt $deduplicatedRoles.Count; $i++) {
-                $roleInfo = $deduplicatedRoles[$i]
-                try {
-                    $activationTime = $roleInfo.ActivationTime
-                    $deactivationTime = $activationTime.AddMinutes(5)
-                    $timeRemaining = $deactivationTime - (Get-Date)
-                    
-                    # Position cursor at this role's line
-                    $lineNumber = $roleStartLine + $i
-                    [Console]::SetCursorPosition(0, $lineNumber)
-                    
-                    if ($timeRemaining.TotalSeconds -gt 0) {
-                        $allReady = $false
-                        $minutes = [int][math]::Floor($timeRemaining.TotalMinutes)
-                        $seconds = [int][math]::Floor($timeRemaining.TotalSeconds % 60)
-                        $timeDisplay = "{0:D2}:{1:D2}" -f $minutes, $seconds
-                        
-                        # Update only the time part to reduce flicker
-                        Write-Host "  ⏳ $($roleInfo.RoleName): $timeDisplay remaining" -ForegroundColor Cyan -NoNewline
-                        Write-Host (" " * ([Console]::WindowWidth - [Console]::CursorLeft - 1))
-                    } else {
-                        Write-Host "  ✅ $($roleInfo.RoleName): Ready for deactivation!" -ForegroundColor Green -NoNewline
-                        Write-Host (" " * ([Console]::WindowWidth - [Console]::CursorLeft - 1))
-                    }
-                } catch {
-                    # Position cursor at this role's line
-                    $lineNumber = $roleStartLine + $i
-                    [Console]::SetCursorPosition(0, $lineNumber)
-                    # Clear line and write new content
-                    Write-Host (" " * ([Console]::WindowWidth - 1)) -NoNewline
-                    [Console]::SetCursorPosition(0, $lineNumber)
-                    Write-Host "  ❓ $($roleInfo.RoleName): Unable to check" -ForegroundColor Yellow
-                }
-            }
-            
-            # Check if user pressed a key to skip
-            if ([Console]::KeyAvailable) {
-                $key = [Console]::ReadKey($true)
-                if ($key.Key -eq 'Q' -and $key.Modifiers -eq 'Control') {
-                    Invoke-PIMExit
-                } else {
-                Write-Host "Countdown skipped by user." -ForegroundColor Yellow
-                    Start-Sleep -Seconds 1
-                        break
-                }
-                }
-            
-            if (-not $allReady) {
-                Start-Sleep -Seconds 1
-            }
-            
-        } while (-not $allReady)
-        
-        [Console]::CursorVisible = $true
-        
-        if ($allReady) {
-            Clear-Host
-            Show-PIMGlobalHeaderMinimal
-            Write-Host ""
-            Write-Host "   Refreshing deactivation menu..." -ForegroundColor Cyan
-            Start-Sleep -Seconds 2
-            return $true
-        }
-        
-        return $false
-            
-        } finally {
             [Console]::CursorVisible = $true
         }
     }
@@ -4286,12 +3420,12 @@ function Show-PIMGlobalHeader {
             } else {
                 # Get user input with proper cursor positioning
                 do {
-                    $input = Read-PIMInput -Prompt "Would you like to check for roles to deactivate instead? (Y/N)" -ControlsText $script:ControlMessages['Exit']
-                    $input = $input.Trim().ToUpper()
-                    if ($input -eq "Y" -or $input -eq "YES") {
+                    $userInput = Read-PIMInput -Prompt "Would you like to check for roles to deactivate instead? (Y/N)" -ControlsText $script:ControlMessages['Exit']
+                    $userInput = $userInput.Trim().ToUpper()
+                    if ($userInput -eq "Y" -or $userInput -eq "YES") {
                         $continueChoice = "Yes"
                         break
-                    } elseif ($input -eq "N" -or $input -eq "NO") {
+                    } elseif ($userInput -eq "N" -or $userInput -eq "NO") {
                         $continueChoice = "No"
                         break
                 } else {
@@ -4332,87 +3466,6 @@ function Show-PIMGlobalHeader {
         
         # Continue to activation workflow
         Start-RoleActivationWorkflow -ValidRoles $validRoles -CurrentUserId $CurrentUserId
-    }
-    
-    
-    function Show-DeactivationCountdown {
-        param(
-            [array]$TooNewRoles,
-            [array]$ReadyRoles,
-            [string]$CurrentUserId
-        )
-        
-        # Build static header content once
-        $headerLines = @()
-        $headerLines += "[ P I M - G L O B A L ]"
-        $headerLines += ""
-        $headerLines += "⏰ Time Remaining Until Roles Can Be Deactivated"
-        $headerLines += "   (5-minute minimum activation period required)"
-        $headerLines += ""
-        
-        do {
-            # Clear and redraw header every time for clean display
-            Clear-Host
-            foreach ($line in $headerLines) {
-                if ($line -eq "[ P I M - G L O B A L ]") {
-                    Write-Host $line -ForegroundColor Magenta
-                } elseif ($line -eq "⏰ Time Remaining Until Roles Can Be Deactivated") {
-                    Write-Host $line -ForegroundColor Yellow
-                } elseif ($line -eq "   (5-minute minimum activation period required)") {
-                    Write-Host $line -ForegroundColor Gray
-                } else {
-                    Write-Host $line
-                }
-            }
-            
-            $allReady = $true
-            
-            foreach ($roleInfo in $TooNewRoles) {
-                try {
-                    $activationTime = $roleInfo.ActivationTime
-                    $deactivationTime = $activationTime.AddMinutes(5)
-                    $timeRemaining = $deactivationTime - (Get-Date)
-                    
-                    if ($timeRemaining.TotalSeconds -gt 0) {
-                        $allReady = $false
-                        $minutes = [int][math]::Floor($timeRemaining.TotalMinutes)
-                        $seconds = [int][math]::Floor($timeRemaining.TotalSeconds % 60)
-                        $timeDisplay = "{0:D2}:{1:D2}" -f $minutes, $seconds
-                        
-                        Write-Host "  ⏳ $($roleInfo.RoleName): $timeDisplay remaining" -ForegroundColor Cyan
-                    } else {
-                        Write-Host "  ✅ $($roleInfo.RoleName): Ready for deactivation!" -ForegroundColor Green
-                    }
-                } catch {
-                    Write-Host "  ❓ $($roleInfo.RoleName): Unable to check" -ForegroundColor Yellow
-                }
-            }
-            
-            Show-DynamicControlBar -ControlsText "Any key to skip countdown | Ctrl+Q Exit"
-            
-            # Check if user pressed a key to skip
-            if ([Console]::KeyAvailable) {
-                [Console]::ReadKey($true) | Out-Null
-                Write-Host "Countdown skipped by user." -ForegroundColor Yellow
-                return $false
-            }
-            
-            if (-not $allReady) {
-                Start-Sleep -Seconds 1
-            }
-            
-        } while (-not $allReady)
-        
-        [Console]::CursorVisible = $true
-        
-        # All roles are ready
-        Clear-Host
-        Show-PIMGlobalHeaderMinimal
-        Write-Host ""
-        Write-Host "✅ All roles are now eligible for deactivation!" -ForegroundColor Green
-        Write-Host ""
-        Start-Sleep -Seconds 2
-        return $true
     }
 
 # Move Start-RoleDeactivationWorkflow to global scope  
@@ -4806,12 +3859,12 @@ function Start-RoleDeactivationWorkflow {
     
     # Ask if user wants to manage more roles
     do {
-        $input = Read-PIMInput -Prompt "Would you like to manage more roles? (Y/N)" -ControlsText $script:ControlMessages['Exit']
-        $input = $input.Trim().ToUpper()
-        if ($input -eq "Y" -or $input -eq "YES") {
+        $userInput = Read-PIMInput -Prompt "Would you like to manage more roles? (Y/N)" -ControlsText $script:ControlMessages['Exit']
+        $userInput = $userInput.Trim().ToUpper()
+        if ($userInput -eq "Y" -or $userInput -eq "YES") {
             $continueChoice = "Yes"
             break
-        } elseif ($input -eq "N" -or $input -eq "NO") {
+        } elseif ($userInput -eq "N" -or $userInput -eq "NO") {
             $continueChoice = "No"
             break
         } else {
