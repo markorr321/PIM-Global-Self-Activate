@@ -2096,7 +2096,8 @@ function Show-PIMGlobalHeader {
             # Use PowerShell's built-in toast notification capability
             # This is the most reliable method for PowerShell scripts
             $null = [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime]
-            $null = [Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime]
+            $null = [Windows.Data.Xml.Dom.Xml
+            Document, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime]
             
             # Create the toast template with image support
             $template = [Windows.UI.Notifications.ToastNotificationManager]::GetTemplateContent([Windows.UI.Notifications.ToastTemplateType]::ToastImageAndText02)
